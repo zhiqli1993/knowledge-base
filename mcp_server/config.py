@@ -77,8 +77,12 @@ class Config(BaseModel):
 
     @classmethod
     def load_from_file(cls, path: Path) -> "Config":
-        """Load configuration from JSON file"""
+        """Load configuration from JSON file, returns defaults if file doesn't exist"""
         resolved_path = path.resolve()
+
+        if not resolved_path.exists():
+            return cls()
+
         try:
             with open(resolved_path) as f:
                 data = json.load(f)

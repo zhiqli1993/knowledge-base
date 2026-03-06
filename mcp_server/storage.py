@@ -177,3 +177,10 @@ class Storage:
             await db.execute("DELETE FROM documents WHERE source_id = ?", (source_id,))
             await db.execute("DELETE FROM sources WHERE id = ?", (source_id,))
             await db.commit()
+
+    async def get_document_count(self) -> int:
+        """Get total number of documents"""
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute("SELECT COUNT(*) FROM documents") as cursor:
+                row = await cursor.fetchone()
+                return row[0] if row else 0
