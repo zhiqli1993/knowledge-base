@@ -14,8 +14,17 @@ def config():
 @pytest.fixture
 def indexer(config):
     """Create indexer instance with mocked dependencies"""
-    with patch.object(Indexer, 'initialize', new_callable=AsyncMock):
+    with patch.object(Indexer, 'initialize', new_callable=AsyncMock), \
+         patch('mcp_server.indexer.ChromaClient') as mock_chroma_class:
+
+        # Mock ChromaClient to avoid initialization
+        mock_chroma_instance = Mock()
+        mock_chroma_instance.add_documents = Mock()
+        mock_chroma_instance.count = Mock(return_value=0)
+        mock_chroma_class.return_value = mock_chroma_instance
+
         indexer = Indexer(config)
+
         # Replace real storage with properly mocked async methods
         mock_storage = Mock()
         mock_storage.update_source_status = AsyncMock()
