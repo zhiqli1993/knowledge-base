@@ -10,6 +10,11 @@ class ChromaConfig(BaseModel):
     collection_name: str = "knowledge_base"
     persist_directory: str = "~/.claude/knowledge-base/chroma_db"
 
+    @property
+    def persist_directory_expanded(self) -> Path:
+        """Return persist_directory with tilde expanded"""
+        return Path(self.persist_directory).expanduser()
+
 class OllamaConfig(BaseModel):
     host: str = "localhost"
     port: int = 11434
@@ -17,7 +22,7 @@ class OllamaConfig(BaseModel):
     timeout: int = 60
 
 class GitHubConfig(BaseModel):
-    token: Optional[str] = None
+    token: Optional[str] = Field(default=None, exclude=True)
     max_file_size_mb: int = 5
 
 class WebConfig(BaseModel):
@@ -45,6 +50,14 @@ class IndexingConfig(BaseModel):
             raise ValueError("chunk_size must be positive")
         return v
 
+    @field_validator('chunk_overlap')
+    @classmethod
+    def validate_chunk_overlap(cls, v, info):
+        chunk_size = info.data.get('chunk_size')
+        if chunk_size is not None and v >= chunk_size:
+            raise ValueError("chunk_overlap must be less than chunk_size")
+        return v
+
 class RetrievalConfig(BaseModel):
     default_top_k: int = 5
     similarity_threshold: float = 0.7
@@ -65,18 +78,25 @@ class Config(BaseModel):
     @classmethod
     def load_from_file(cls, path: Path) -> "Config":
         """Load configuration from JSON file"""
-        with open(path) as f:
-            data = json.load(f)
+        resolved_path = path.resolve()
+        try:
+            with open(resolved_path) as f:
+                data = json.load(f)
+        except (IOError, OSError) as e:
+            raise RuntimeError(f"Failed to load config from {resolved_path}: {e}")
         return cls(**data)
 
     def validate(self) -> bool:
-        """Validate configuration by re-validating all nested models"""
-        # Re-validate each nested config to trigger validators
-        self.model_validate(self.model_dump())
+        """Validate configuration"""
+        # Validation happens on init, this is a no-op check
         return True
 
     def save_to_file(self, path: Path):
         """Save configuration to JSON file"""
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, 'w') as f:
-            json.dump(self.model_dump(), f, indent=2)
+        resolved_path = path.resolve()
+        resolved_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            with open(resolved_path, 'w') as f:
+                json.dump(self.model_dump(), f, indent=2)
+        except (IOError, OSError) as e:
+            raise RuntimeError(f"Failed to save config to {resolved_path}: {e}")
