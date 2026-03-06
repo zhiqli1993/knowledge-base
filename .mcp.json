@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "knowledge-base": {
+      "command": "python3",
+      "args": ["-m", "mcp_server.server"],
+      "env": {
+        "KNOWLEDGE_BASE_CONFIG": "/Users/zhiqli/.config/knowledge-base/config.json",
+        "PYTHONPATH": "/Users/zhiqli/knowledge-base"
+      }
+    }
+  }
+}

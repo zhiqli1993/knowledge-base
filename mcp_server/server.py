@@ -17,14 +17,22 @@ def create_server() -> FastMCP:
     config_path = os.getenv("KNOWLEDGE_BASE_CONFIG", "~/.config/knowledge-base/config.json")
     config = Config.load_from_file(Path(config_path).expanduser())
 
-    # Initialize components
+    # Initialize components (storage will be initialized lazily on first use)
     storage = Storage(config.chroma.persist_directory_expanded / "storage.db")
     indexer = Indexer(config)
     retriever = Retriever(config)
 
-    # Initialize storage on startup
-    asyncio.create_task(storage.init())
-    asyncio.create_task(indexer.initialize())
+    # Track if storage is initialized
+    _initialized = {"storage": False, "indexer": False}
+
+    async def ensure_initialized():
+        """Ensure storage and indexer are initialized"""
+        if not _initialized["storage"]:
+            await storage.init()
+            _initialized["storage"] = True
+        if not _initialized["indexer"]:
+            await indexer.initialize()
+            _initialized["indexer"] = True
 
     mcp = FastMCP("knowledge-base")
 
@@ -47,6 +55,8 @@ def create_server() -> FastMCP:
         Returns:
             Status message
         """
+        await ensure_initialized()
+
         # Parse repo URL to create source ID
         if repo_url.startswith("http"):
             parts = repo_url.rstrip("/").split("/")
@@ -90,6 +100,7 @@ def create_server() -> FastMCP:
         Returns:
             Status message
         """
+        await ensure_initialized()
         from urllib.parse import urlparse
 
         # Create source ID from URL
@@ -124,6 +135,7 @@ def create_server() -> FastMCP:
         Returns:
             Status message
         """
+        await ensure_initialized()
         from urllib.parse import urlparse
 
         parsed = urlparse(base_url)
@@ -163,6 +175,7 @@ def create_server() -> FastMCP:
         Returns:
             Formatted search results
         """
+        await ensure_initialized()
         results = await retriever.search(query, n_results, source_filter)
         return retriever.format_results(results)
 
@@ -177,6 +190,7 @@ def create_server() -> FastMCP:
         Returns:
             Formatted list of sources
         """
+        await ensure_initialized()
         sources = await storage.list_sources()
 
         if source_type:
@@ -208,6 +222,7 @@ def create_server() -> FastMCP:
         Returns:
             Status message
         """
+        await ensure_initialized()
         source = await storage.get_source(source_id)
         if not source:
             return f"Source {source_id} not found"
@@ -224,6 +239,7 @@ def create_server() -> FastMCP:
         Returns:
             Formatted status information
         """
+        await ensure_initialized()
         sources = await storage.list_sources()
         total_sources = len(sources)
         indexed_sources = len([s for s in sources if s.status.value == "ready"])
