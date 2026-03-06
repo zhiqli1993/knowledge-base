@@ -107,24 +107,15 @@ class GitHubRepoFetcher:
                         if file_content.size <= self.config.max_file_size_mb * 1024 * 1024:
                             file_info = FileInfo.from_github_content(
                                 file_content,
-                                f"{self.owner}/{self.repo_name}"
+                                f"{self.owner}/{self.repo_name}",
+                                file_content.decoded_content.decode('utf-8')
                             )
-                            # Add download method
-                            file_info.download = lambda fc=file_content: self._download_content(fc)
                             files.append(file_info)
 
         except Exception as e:
             raise RuntimeError(f"Failed to list files from {self.owner}/{self.repo_name}: {e}")
 
         return files
-
-    async def _download_content(self, file_content) -> str:
-        """Download file content from GitHub"""
-        try:
-            content = file_content.decoded_content.decode('utf-8')
-            return content
-        except Exception as e:
-            raise RuntimeError(f"Failed to download {file_content.path}: {e}")
 
     def close(self):
         """Close GitHub client connection"""

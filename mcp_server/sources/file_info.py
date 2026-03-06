@@ -8,9 +8,10 @@ class FileInfo(BaseModel):
     size: int
     sha: str
     language: Optional[str] = None
+    content: Optional[str] = None
 
     @classmethod
-    def from_github_content(cls, content, repo_name: str) -> "FileInfo":
+    def from_github_content(cls, content, repo_name: str, file_content: Optional[str] = None) -> "FileInfo":
         """Create FileInfo from GitHub ContentFile"""
         # Detect language from file extension
         ext = Path(content.path).suffix.lstrip('.')
@@ -31,9 +32,12 @@ class FileInfo(BaseModel):
             url=content.html_url,
             size=content.size,
             sha=content.sha,
-            language=lang_map.get(ext, 'text')
+            language=lang_map.get(ext, 'text'),
+            content=file_content
         )
 
     async def download(self) -> str:
-        """Download file content (to be implemented)"""
-        raise NotImplementedError("Subclass must implement download()")
+        """Download file content"""
+        if self.content is not None:
+            return self.content
+        raise NotImplementedError("Content not available")
