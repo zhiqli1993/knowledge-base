@@ -8,10 +8,9 @@ class ChromaClient:
     def __init__(self, config: ChromaConfig):
         self.config = config
         # Use persistent client
-        self.client = chromadb.Client(Settings(
-            persist_directory=config.persist_directory,
-            anonymized_telemetry=False
-        ))
+        self.client = chromadb.PersistentClient(
+            path=str(config.persist_directory_expanded)
+        )
         self.collection = self.client.get_or_create_collection(
             name=config.collection_name
         )
