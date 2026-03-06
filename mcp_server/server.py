@@ -22,8 +22,9 @@ def create_server() -> FastMCP:
     indexer = Indexer(config)
     retriever = Retriever(config)
 
-    # Track if storage is initialized
+    # Track if storage is initialized and background tasks
     _initialized = {"storage": False, "indexer": False}
+    _background_tasks = set()
 
     async def ensure_initialized():
         """Ensure storage and indexer are initialized"""
@@ -33,6 +34,13 @@ def create_server() -> FastMCP:
         if not _initialized["indexer"]:
             await indexer.initialize()
             _initialized["indexer"] = True
+
+    def start_background_task(coro):
+        """Start a background task and track it"""
+        task = asyncio.create_task(coro)
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
+        return task
 
     mcp = FastMCP("knowledge-base")
 
@@ -85,7 +93,7 @@ def create_server() -> FastMCP:
         await storage.add_source(source)
 
         # Start indexing in background
-        asyncio.create_task(indexer.index_source(source))
+        start_background_task(indexer.index_source(source))
 
         return f"Added {repo_url} to knowledge base. Indexing started in background."
 
@@ -119,7 +127,7 @@ def create_server() -> FastMCP:
         )
 
         await storage.add_source(source)
-        asyncio.create_task(indexer.index_source(source))
+        start_background_task(indexer.index_source(source))
 
         return f"Added {url} to knowledge base. Indexing started in background."
 
@@ -154,7 +162,7 @@ def create_server() -> FastMCP:
         )
 
         await storage.add_source(source)
-        asyncio.create_task(indexer.index_source(source))
+        start_background_task(indexer.index_source(source))
 
         return f"Added {base_url} to knowledge base. Indexing started in background."
 
@@ -207,6 +215,8 @@ def create_server() -> FastMCP:
             output.append(f"  Status: {source.status.value}")
             if source.last_indexed_at:
                 output.append(f"  Indexed: {source.last_indexed_at.isoformat()}")
+            if source.status.value == "error" and source.error_message:
+                output.append(f"  Error: {source.error_message}")
             output.append("")
 
         return "\n".join(output)

@@ -64,10 +64,25 @@ class Indexer:
 
     async def _index_github_repo(self, source: Source):
         """Index GitHub repository"""
-        fetcher = GitHubRepoFetcher(source.url, self.config.github)
+        MAX_FILES_PER_REPO = 500  # Limit to prevent overwhelming the system
+
+        fetcher = GitHubRepoFetcher(
+            source.url,
+            self.config.github,
+            branch=source.config.get('branch', 'main'),
+            include=source.config.get('include'),
+            exclude=source.config.get('exclude')
+        )
 
         try:
             files = await fetcher.list_files()
+
+            # Check if repo is too large
+            if len(files) > MAX_FILES_PER_REPO:
+                raise ValueError(
+                    f"Repository too large: {len(files)} files (max {MAX_FILES_PER_REPO}). "
+                    f"Consider using more specific include/exclude patterns."
+                )
 
             for file_info in files:
                 # Download file content

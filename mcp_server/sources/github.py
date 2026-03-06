@@ -2,7 +2,7 @@ import re
 import fnmatch
 from typing import List, Optional
 from pathlib import Path
-from github import Github
+from github import Github, Auth
 from mcp_server.config import GitHubConfig
 from mcp_server.sources.file_info import FileInfo
 
@@ -38,7 +38,8 @@ class GitHubRepoFetcher:
         """Lazy initialize GitHub client"""
         if self._github is None:
             if self.config.token:
-                self._github = Github(self.config.token)
+                auth = Auth.Token(self.config.token)
+                self._github = Github(auth=auth)
             else:
                 self._github = Github()
         return self._github
