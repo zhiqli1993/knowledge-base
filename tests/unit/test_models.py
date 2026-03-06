@@ -32,3 +32,16 @@ def test_chunk_id_generation():
         metadata={}
     )
     assert chunk.id == "source-123:README.md:chunk_0"
+
+def test_chunk_serialization():
+    """Test Chunk.id is included in model_dump() serialization"""
+    chunk = Chunk(
+        source_id="source-123",
+        file_path="README.md",
+        chunk_index=0,
+        text="Content here",
+        metadata={}
+    )
+    dumped = chunk.model_dump()
+    assert "id" in dumped
+    assert dumped["id"] == "source-123:README.md:chunk_0"

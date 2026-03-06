@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 from enum import Enum
 
 def utcnow() -> datetime:
@@ -49,6 +49,7 @@ class Chunk(BaseModel):
     metadata: Dict[str, Any]
     embedding: Optional[List[float]] = None
 
+    @computed_field
     @property
     def id(self) -> str:
         """Generate unique chunk ID"""
