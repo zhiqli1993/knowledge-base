@@ -56,9 +56,11 @@ class Chunker:
             if header_match:
                 # Save current chunk if it exists
                 if current_chunk:
+                    # Convert headers to string for Chroma metadata
+                    headers_str = " > ".join([h[1] for h in current_headers])
                     chunks.append(ChunkResult(
                         text="\n".join(current_chunk),
-                        metadata={"headers": current_headers.copy()}
+                        metadata={"headers": headers_str}
                     ))
                     current_chunk = []
                     current_size = 0
@@ -76,18 +78,22 @@ class Chunker:
 
             # Split if chunk is too large
             if current_size > self.chunk_size and not header_match:
+                # Convert headers to string for Chroma metadata
+                headers_str = " > ".join([h[1] for h in current_headers])
                 chunks.append(ChunkResult(
                     text="\n".join(current_chunk),
-                    metadata={"headers": current_headers.copy()}
+                    metadata={"headers": headers_str}
                 ))
                 current_chunk = []
                 current_size = 0
 
         # Add final chunk
         if current_chunk:
+            # Convert headers to string for Chroma metadata
+            headers_str = " > ".join([h[1] for h in current_headers])
             chunks.append(ChunkResult(
                 text="\n".join(current_chunk),
-                metadata={"headers": current_headers.copy()}
+                metadata={"headers": headers_str}
             ))
 
         return chunks

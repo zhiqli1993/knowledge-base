@@ -22,7 +22,7 @@ class OllamaConfig(BaseModel):
     timeout: int = 60
 
 class GitHubConfig(BaseModel):
-    token: Optional[str] = Field(default=None, exclude=True)
+    token: Optional[str] = Field(default=None, exclude=True)  # Kept for backward compatibility, not used
     max_file_size_mb: int = 5
 
 class WebConfig(BaseModel):

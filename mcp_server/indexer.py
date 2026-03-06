@@ -6,7 +6,7 @@ from mcp_server.storage import Storage
 from mcp_server.chroma_client import ChromaClient
 from mcp_server.embeddings import OllamaEmbeddings
 from mcp_server.chunker import Chunker, ChunkResult
-from mcp_server.sources.github import GitHubRepoFetcher
+from mcp_server.sources.github_git import GitHubRepoCloner
 from mcp_server.sources.web import WebPageFetcher, WebSiteFetcher
 
 
@@ -63,19 +63,22 @@ class Indexer:
             raise
 
     async def _index_github_repo(self, source: Source):
-        """Index GitHub repository"""
+        """Index GitHub repository using git clone"""
         MAX_FILES_PER_REPO = 500  # Limit to prevent overwhelming the system
 
-        fetcher = GitHubRepoFetcher(
-            source.url,
-            self.config.github,
-            branch=source.config.get('branch', 'main'),
-            include=source.config.get('include'),
-            exclude=source.config.get('exclude')
+        # Get config or use defaults
+        config = source.config or {}
+
+        cloner = GitHubRepoCloner(
+            repo_url=source.url,
+            branch=config.get('branch', 'main'),
+            include=config.get('include'),
+            exclude=config.get('exclude'),
+            max_file_size_mb=self.config.github.max_file_size_mb
         )
 
         try:
-            files = await fetcher.list_files()
+            files = await cloner.list_files()
 
             # Check if repo is too large
             if len(files) > MAX_FILES_PER_REPO:
@@ -85,15 +88,18 @@ class Indexer:
                 )
 
             for file_info in files:
-                # Download file content
-                content = await file_info.download()
+                # File content is already loaded
+                content = file_info.content or await file_info.download()
 
                 # Create document record
+                import hashlib
+                content_hash = hashlib.sha256(content.encode()).hexdigest()
+
                 document = Document(
                     id=f"{source.id}:{file_info.path}",
                     source_id=source.id,
                     file_path=file_info.path,
-                    content_hash=file_info.sha,
+                    content_hash=content_hash,
                     chunk_count=0,
                     indexed_at=None
                 )
@@ -108,7 +114,7 @@ class Indexer:
                 await self._store_chunks(source.id, file_info.path, chunks)
 
         finally:
-            fetcher.close()
+            cloner.cleanup()
 
     async def _index_github_file(self, source: Source):
         """Index single GitHub file"""
@@ -196,6 +202,11 @@ class Indexer:
         chunks: List[ChunkResult]
     ):
         """Generate embeddings and store chunks in Chroma"""
+        if not chunks:
+            return
+
+        # Filter out empty chunks
+        chunks = [c for c in chunks if c.text and c.text.strip()]
         if not chunks:
             return
 

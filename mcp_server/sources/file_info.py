@@ -6,7 +6,7 @@ class FileInfo(BaseModel):
     path: str
     url: str
     size: int
-    sha: str
+    sha: Optional[str] = None  # Optional for git clone approach
     language: Optional[str] = None
     content: Optional[str] = None
 
