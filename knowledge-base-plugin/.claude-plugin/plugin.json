@@ -1,0 +1,22 @@
+{
+  "name": "knowledge-base",
+  "description": "Personal knowledge base system for indexing and searching GitHub repositories, documentation, and web pages. Provides semantic search across all indexed content with no GitHub token required for public repos.",
+  "version": "1.0.0",
+  "author": {
+    "name": "zhiqli",
+    "email": "user@example.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zhiqli/knowledge-base"
+  },
+  "keywords": [
+    "knowledge-base",
+    "search",
+    "indexing",
+    "semantic-search",
+    "github",
+    "documentation",
+    "mcp"
+  ]
+}
