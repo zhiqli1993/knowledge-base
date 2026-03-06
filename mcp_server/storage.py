@@ -75,6 +75,23 @@ class Storage:
             ))
             await db.commit()
 
+    async def add_document(self, document: Document):
+        """Add a new document"""
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute("""
+                INSERT INTO documents (
+                    id, source_id, file_path, content_hash, chunk_count, indexed_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                document.id,
+                document.source_id,
+                document.file_path,
+                document.content_hash,
+                document.chunk_count,
+                document.indexed_at.isoformat() if document.indexed_at else None
+            ))
+            await db.commit()
+
     async def get_source(self, source_id: str) -> Optional[Source]:
         """Get source by ID"""
         async with aiosqlite.connect(self.db_path) as db:
