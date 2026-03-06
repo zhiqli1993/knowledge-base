@@ -56,7 +56,10 @@ class Chunk(BaseModel):
         return f"{self.source_id}:{self.file_path}:chunk_{self.chunk_index}"
 
 class SearchResult(BaseModel):
-    content: str
-    metadata: Dict[str, Any]
+    chunk_id: str
+    text: str
     score: float
+    source_id: str
+    file_path: str
+    metadata: Dict[str, Any]
     source: Optional[Source] = None
