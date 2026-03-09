@@ -1,0 +1,23 @@
+{
+  "eval_id": 2,
+  "eval_name": "search-chatbot",
+  "prompt": "search my docs for information about customer support chatbots using Claude API",
+  "assertions": [
+    {
+      "text": "Invoked the kb_search MCP tool",
+      "type": "tool_usage"
+    },
+    {
+      "text": "Search query includes relevant keywords (customer support, chatbot, Claude API)",
+      "type": "query_quality"
+    },
+    {
+      "text": "Presented search results with source, file path, and text snippets",
+      "type": "output_format"
+    },
+    {
+      "text": "Results are ranked by relevance score",
+      "type": "functionality"
+    }
+  ]
+}

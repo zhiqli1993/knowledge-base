@@ -106,7 +106,8 @@ if [ ! -f "$CONFIG_FILE" ]; then
     "chunk_overlap": 200
   },
   "github": {
-    "max_file_size_mb": 5
+    "max_file_size_mb": 5,
+    "auto_detect_language": true
   },
   "web": {
     "timeout": 30,

@@ -1,0 +1,59 @@
+Search Results: customer support chatbots using Claude API
+=========================================================
+
+Query: customer support chatbots using Claude API
+Results found: 10
+
+Key Findings:
+-------------
+
+1. **Claude Customer Support Agent (anthropic-quickstarts)**
+
+   A fully customizable customer support chat interface powered by Claude
+   and leveraging Amazon Bedrock Knowledge Bases for knowledge retrieval.
+
+   Source: anthropics/anthropic-quickstarts/customer-support-agent/README.md
+
+   Key Features:
+   - AI-powered chat using Anthropic's Claude model
+   - Amazon Bedrock integration for contextual knowledge retrieval
+   - Real-time thinking & debug information display
+   - Knowledge base source visualization
+   - User mood detection & appropriate agent redirection
+   - Highly customizable UI with shadcn/ui components
+
+2. **API Implementation Details**
+
+   The customer support agent uses:
+   - Claude SDK for API calls
+   - Zod for response schema validation
+   - System prompt for customer support behavior
+   - Category classification for inquiries
+   - Response structure with: thinking, response, user_mood, suggested_questions
+
+   Example system prompt:
+   "You are acting as an Anthropic customer support assistant chatbot inside
+   a chat window on a website. You are chatting with a human user who is
+   asking for help about Anthropic's products and services."
+
+3. **Response Schema**
+
+   The agent returns structured JSON responses including:
+   - response: The chatbot's reply
+   - thinking: Explanation of reasoning
+   - user_mood: Detected mood (positive/neutral/negative/curious/frustrated/confused)
+   - suggested_questions: Follow-up questions
+   - matched_categories: Category classification (optional)
+   - redirect_to_agent: Human agent redirection decision
+
+4. **Technical Stack**
+
+   - TypeScript/Next.js
+   - Anthropic SDK
+   - Zod validation
+   - Amazon Bedrock Knowledge Bases
+   - shadcn/ui components
+
+Files Referenced:
+- customer-support-agent/README.md
+- customer-support-agent/app/api/chat/route.ts

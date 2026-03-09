@@ -1,0 +1,29 @@
+{
+  "eval_name": "add-repo-test",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "Invoked the kb_add_repo MCP tool",
+      "passed": true,
+      "evidence": "Agent called mcp__knowledge-base__kb_add_repo with repo_url parameter"
+    },
+    {
+      "text": "Used correct repo_url format (anthropics/anthropic-quickstarts)",
+      "passed": true,
+      "evidence": "repo_url was 'https://github.com/anthropics/anthropic-quickstarts' which is correct"
+    },
+    {
+      "text": "Confirmed to user that repo was added to indexing queue",
+      "passed": true,
+      "evidence": "Output clearly states 'Repository: https://github.com/anthropics/anthropic-quickstarts' with status information"
+    },
+    {
+      "text": "Did not create any unnecessary files or scripts",
+      "passed": true,
+      "evidence": "Only created the required result.txt output file, no extraneous scripts"
+    }
+  ],
+  "pass_rate": 1.0,
+  "passed_count": 4,
+  "total_count": 4
+}

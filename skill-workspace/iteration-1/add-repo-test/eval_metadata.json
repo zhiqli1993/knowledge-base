@@ -1,0 +1,23 @@
+{
+  "eval_id": 1,
+  "eval_name": "add-repo-test",
+  "prompt": "hey can you add the anthropics quickstarts repo to my knowledge base? I want to search through their examples later",
+  "assertions": [
+    {
+      "text": "Invoked the kb_add_repo MCP tool",
+      "type": "tool_usage"
+    },
+    {
+      "text": "Used correct repo_url format (anthropics/anthropic-quickstarts)",
+      "type": "parameter_check"
+    },
+    {
+      "text": "Confirmed to user that repo was added to indexing queue",
+      "type": "communication"
+    },
+    {
+      "text": "Did not create any unnecessary files or scripts",
+      "type": "efficiency"
+    }
+  ]
+}

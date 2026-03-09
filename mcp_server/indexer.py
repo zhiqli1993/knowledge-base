@@ -64,8 +64,6 @@ class Indexer:
 
     async def _index_github_repo(self, source: Source):
         """Index GitHub repository using git clone"""
-        MAX_FILES_PER_REPO = 500  # Limit to prevent overwhelming the system
-
         # Get config or use defaults
         config = source.config or {}
 
@@ -80,12 +78,7 @@ class Indexer:
         try:
             files = await cloner.list_files()
 
-            # Check if repo is too large
-            if len(files) > MAX_FILES_PER_REPO:
-                raise ValueError(
-                    f"Repository too large: {len(files)} files (max {MAX_FILES_PER_REPO}). "
-                    f"Consider using more specific include/exclude patterns."
-                )
+            # Note: No file limit - language-specific excludes handle large repos efficiently
 
             for file_info in files:
                 # File content is already loaded

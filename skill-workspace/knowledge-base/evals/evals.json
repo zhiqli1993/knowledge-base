@@ -1,0 +1,81 @@
+{
+  "skill_name": "knowledge-base",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "hey can you add the anthropics quickstarts repo to my knowledge base? I want to search through their examples later",
+      "expected_output": "Should invoke kb_add_repo with repo_url='anthropics/anthropic-quickstarts', branch='main', and confirm the repo was added to indexing queue",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Invoked the kb_add_repo MCP tool",
+          "type": "tool_usage"
+        },
+        {
+          "text": "Used correct repo_url format (anthropics/anthropic-quickstarts)",
+          "type": "parameter_check"
+        },
+        {
+          "text": "Confirmed to user that repo was added to indexing queue",
+          "type": "communication"
+        },
+        {
+          "text": "Did not create any unnecessary files or scripts",
+          "type": "efficiency"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "search my docs for information about customer support chatbots using Claude API",
+      "expected_output": "Should invoke kb_search with appropriate query about Claude API customer support, return ranked results with sources and snippets",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Invoked the kb_search MCP tool",
+          "type": "tool_usage"
+        },
+        {
+          "text": "Search query includes relevant keywords (customer support, chatbot, Claude API)",
+          "type": "query_quality"
+        },
+        {
+          "text": "Presented search results with source, file path, and text snippets",
+          "type": "output_format"
+        },
+        {
+          "text": "Results are ranked by relevance score",
+          "type": "functionality"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "what's in my knowledge base right now? give me a summary",
+      "expected_output": "Should invoke kb_status and present the statistics in a readable format (sources count, documents, chunks, storage location)",
+      "files": [],
+      "assertions": [
+        {
+          "text": "Invoked the kb_status MCP tool",
+          "type": "tool_usage"
+        },
+        {
+          "text": "Displayed total sources count",
+          "type": "information_completeness"
+        },
+        {
+          "text": "Displayed indexed/indexing/pending/failed breakdown",
+          "type": "information_completeness"
+        },
+        {
+          "text": "Displayed documents and chunks counts",
+          "type": "information_completeness"
+        },
+        {
+          "text": "Presented information in readable format (not raw JSON)",
+          "type": "user_experience"
+        }
+      ]
+    }
+  ]
+}
