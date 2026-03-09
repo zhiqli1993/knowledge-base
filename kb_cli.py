@@ -119,7 +119,7 @@ class KnowledgeBaseCLI:
             type=SourceType.GITHUB_REPO,
             url=repo_url if repo_url.startswith("http") else f"https://github.com/{repo_url}",
             status=SourceStatus.PENDING,
-            metadata={"branch": branch}
+            config={"branch": branch}
         )
 
         await self.storage.add_source(source)
