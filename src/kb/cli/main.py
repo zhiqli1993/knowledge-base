@@ -115,6 +115,9 @@ async def async_main() -> int:
         return 0
 
     command = sys.argv[1]
+    if command in {"help", "--help", "-h"}:
+        print_usage()
+        return 0
 
     try:
         if command == "serve":

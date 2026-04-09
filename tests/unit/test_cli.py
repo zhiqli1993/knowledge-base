@@ -6,6 +6,18 @@ from kb.cli import main as cli_main
 
 
 @pytest.mark.asyncio
+async def test_async_main_supports_help_flag(capsys, monkeypatch):
+    monkeypatch.setattr(cli_main.sys, "argv", ["kb", "--help"])
+
+    exit_code = await cli_main.async_main()
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "Knowledge Base CLI" in captured.out
+    assert "kb status" in captured.out
+
+
+@pytest.mark.asyncio
 async def test_async_main_formats_runtime_errors(capsys, monkeypatch):
     class DummyCLI:
         async def status(self):
