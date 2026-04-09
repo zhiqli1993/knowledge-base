@@ -93,7 +93,8 @@ class GitHubRepoCloner:
         self.include_patterns = include or [
             "**/*.md", "**/README*", "**/docs/**",
             "**/*.ts", "**/*.py", "**/*.go", "**/*.js",
-            "**/*.java", "**/*.rs", "**/*.cpp", "**/*.c"
+            "**/*.java", "**/*.rs", "**/*.cpp", "**/*.c",
+            "**/*.yaml", "**/*.yml"
         ]
 
         # Use provided exclude patterns or auto-detect

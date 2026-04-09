@@ -9,6 +9,12 @@ async def _json_error(message: str, status: int) -> web.Response:
     return web.json_response({"error": message}, status=status)
 
 
+def _exc_message(exc: Exception) -> str:
+    if isinstance(exc, KeyError) and exc.args:
+        return str(exc.args[0])
+    return str(exc)
+
+
 async def create_app(config: Config) -> web.Application:
     service = KBService(config)
     await service.initialize()
@@ -28,27 +34,27 @@ async def create_app(config: Config) -> web.Application:
         try:
             return web.json_response(await service.get_source(request.match_info["source_id"]))
         except KeyError as exc:
-            return await _json_error(str(exc), 404)
+            return await _json_error(_exc_message(exc), 404)
 
     async def get_progress(request: web.Request) -> web.Response:
         try:
             return web.json_response(await service.get_progress(request.match_info["source_id"]))
         except KeyError as exc:
-            return await _json_error(str(exc), 404)
+            return await _json_error(_exc_message(exc), 404)
 
     async def add_url(request: web.Request) -> web.Response:
         payload = await request.json()
         try:
             return web.json_response(await service.add_url(payload["url"]), status=202)
         except (KeyError, ValueError) as exc:
-            return await _json_error(str(exc), 400)
+            return await _json_error(_exc_message(exc), 400)
 
     async def add_site(request: web.Request) -> web.Response:
         payload = await request.json()
         try:
             return web.json_response(await service.add_site(payload["base_url"], payload.get("max_pages")), status=202)
         except (KeyError, ValueError) as exc:
-            return await _json_error(str(exc), 400)
+            return await _json_error(_exc_message(exc), 400)
 
     async def add_repo(request: web.Request) -> web.Response:
         payload = await request.json()
@@ -63,7 +69,7 @@ async def create_app(config: Config) -> web.Application:
                 status=202,
             )
         except (KeyError, ValueError, RuntimeError) as exc:
-            return await _json_error(str(exc), 400)
+            return await _json_error(_exc_message(exc), 400)
 
     async def add_local(request: web.Request) -> web.Response:
         payload = await request.json()
@@ -73,11 +79,11 @@ async def create_app(config: Config) -> web.Application:
                 status=202,
             )
         except FileNotFoundError as exc:
-            return await _json_error(str(exc), 404)
+            return await _json_error(_exc_message(exc), 404)
         except PermissionError as exc:
-            return await _json_error(str(exc), 422)
+            return await _json_error(_exc_message(exc), 422)
         except (KeyError, ValueError) as exc:
-            return await _json_error(str(exc), 400)
+            return await _json_error(_exc_message(exc), 400)
 
     async def search(request: web.Request) -> web.Response:
         query = request.query.get("q")
@@ -91,19 +97,19 @@ async def create_app(config: Config) -> web.Application:
         try:
             return web.json_response(await service.delete_source(request.match_info["source_id"]))
         except KeyError as exc:
-            return await _json_error(str(exc), 404)
+            return await _json_error(_exc_message(exc), 404)
 
     async def reindex_source(request: web.Request) -> web.Response:
         try:
             return web.json_response(await service.reindex_source(request.match_info["source_id"]), status=202)
         except KeyError as exc:
-            return await _json_error(str(exc), 404)
+            return await _json_error(_exc_message(exc), 404)
 
     async def update_source(request: web.Request) -> web.Response:
         try:
             return web.json_response(await service.update_source(request.match_info["source_id"]), status=202)
         except KeyError as exc:
-            return await _json_error(str(exc), 404)
+            return await _json_error(_exc_message(exc), 404)
 
     async def reindex_all(request: web.Request) -> web.Response:
         return web.json_response(await service.reindex_all(), status=202)

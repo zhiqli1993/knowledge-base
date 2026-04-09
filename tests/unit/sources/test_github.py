@@ -27,6 +27,7 @@ def test_should_include_file():
     assert fetcher.should_include("README.md") is True
     assert fetcher.should_include("docs/guide.md") is True
     assert fetcher.should_include("src/index.ts") is True
+    assert fetcher.should_include("tekton/pipeline.yaml") is True
 
     # Default excludes
     assert fetcher.should_include("node_modules/package.json") is False

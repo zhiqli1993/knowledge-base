@@ -52,14 +52,14 @@ def format_source(source: Dict[str, Any]) -> str:
 def format_sources(data: Dict[str, Any]) -> str:
     sources = data.get("sources", [])
     if not sources:
-        return "No sources found."
+        return format_message("No sources found.")
     return "\n\n".join(format_source(source) for source in sources)
 
 
 def format_search(data: Dict[str, Any]) -> str:
     results = data.get("results", [])
     if not results:
-        return "No results found."
+        return format_message("No results found.")
     blocks = []
     for index, result in enumerate(results, start=1):
         lines = [
@@ -75,3 +75,34 @@ def format_search(data: Dict[str, Any]) -> str:
 
 def format_message(message: str) -> str:
     return _box("KB", [message])
+
+
+def format_error(message: str) -> str:
+    return _box("KB Error", [message])
+
+
+def format_logs(content: str) -> str:
+    lines = content.splitlines() or [content]
+    return _box("KB Logs", lines)
+
+
+def format_usage() -> str:
+    return _box(
+        "Knowledge Base CLI",
+        [
+            "Usage:",
+            "  kb status",
+            "  kb list [github_repo|web_page|web_site|local]",
+            "  kb progress <source-id>",
+            "  kb add-url <url>",
+            "  kb add-site <base-url> [max-pages]",
+            "  kb add-repo <owner/repo|https-url> [branch]",
+            "  kb add-local <path>",
+            "  kb search <query>",
+            "  kb delete <source-id>",
+            "  kb update [source-id|--all]",
+            "  kb reindex [source-id|--all]",
+            "  kb serve | stop | restart | logs [lines]",
+            "  kb connect [http://host:port|local]",
+        ],
+    )

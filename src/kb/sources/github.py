@@ -19,7 +19,8 @@ class GitHubRepoFetcher:
         self.branch = branch
         self.include_patterns = include or [
             "**/*.md", "**/README*", "**/docs/**",
-            "**/*.ts", "**/*.py", "**/*.go"
+            "**/*.ts", "**/*.py", "**/*.go",
+            "**/*.yaml", "**/*.yml"
         ]
         self.exclude_patterns = exclude or [
             "**/node_modules/**", "**/.git/**", "**/dist/**",

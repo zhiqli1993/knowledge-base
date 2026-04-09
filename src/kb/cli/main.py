@@ -8,7 +8,16 @@ from pathlib import Path
 from kb.client.http import KBHttpClient
 from kb.config import Config, DEFAULT_CONFIG_PATH, resolve_config_path
 from kb.http.process_manager import read_logs, restart, serve, stop
-from kb.presenters import format_message, format_search, format_source, format_sources, format_status
+from kb.presenters import (
+    format_error,
+    format_logs,
+    format_message,
+    format_search,
+    format_source,
+    format_sources,
+    format_status,
+    format_usage,
+)
 
 
 class KnowledgeBaseCLI:
@@ -97,49 +106,43 @@ class KnowledgeBaseCLI:
 
 
 def print_usage():
-    print("Knowledge Base CLI")
-    print("\nUsage:")
-    print("  kb status")
-    print("  kb list [github_repo|web_page|web_site|local]")
-    print("  kb progress <source-id>")
-    print("  kb add-url <url>")
-    print("  kb add-site <base-url> [max-pages]")
-    print("  kb add-repo <owner/repo> [branch]")
-    print("  kb add-local <path>")
-    print("  kb search <query>")
-    print("  kb delete <source-id>")
-    print("  kb update [source-id|--all]")
-    print("  kb reindex [source-id|--all]")
-    print("  kb serve | stop | restart | logs [lines]")
-    print("  kb connect [http://host:port|local]")
+    print(format_usage())
 
 
-async def async_main():
+async def async_main() -> int:
     if len(sys.argv) < 2:
         print_usage()
-        return
+        return 0
 
-    cli = KnowledgeBaseCLI()
     command = sys.argv[1]
 
-    if command == "serve":
-        print(format_message(serve()))
-        return
-    if command == "stop":
-        print(format_message(stop()))
-        return
-    if command == "restart":
-        print(format_message(restart()))
-        return
-    if command == "logs":
-        lines = int(sys.argv[2]) if len(sys.argv) > 2 else 50
-        print(read_logs(lines))
-        return
-    if command == "connect":
-        cli.connect(sys.argv[2] if len(sys.argv) > 2 else None)
-        return
-
     try:
+        if command == "serve":
+            print(format_message(serve()))
+            return 0
+        if command == "stop":
+            print(format_message(stop()))
+            return 0
+        if command == "restart":
+            print(format_message(restart()))
+            return 0
+        if command == "logs":
+            try:
+                lines = int(sys.argv[2]) if len(sys.argv) > 2 else 50
+            except ValueError:
+                print(format_error("Log line count must be an integer"))
+                return 1
+            if lines <= 0:
+                print(format_error("Log line count must be greater than 0"))
+                return 1
+            print(format_logs(read_logs(lines)))
+            return 0
+
+        cli = KnowledgeBaseCLI()
+        if command == "connect":
+            cli.connect(sys.argv[2] if len(sys.argv) > 2 else None)
+            return 0
+
         if command == "status":
             await cli.status()
         elif command == "list":
@@ -168,16 +171,19 @@ async def async_main():
             await cli.reindex(source_id)
         else:
             print_usage()
+            return 1
     except IndexError:
         print_usage()
+        return 1
     except Exception as exc:
-        print(f"Error: {exc}")
-        raise
+        print(format_error(str(exc)))
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    asyncio.run(async_main())
+    raise SystemExit(asyncio.run(async_main()))
 
 
 def cli_entry():
-    asyncio.run(async_main())
+    return asyncio.run(async_main())

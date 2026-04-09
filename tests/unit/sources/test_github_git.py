@@ -10,6 +10,7 @@ async def test_list_files_includes_root_level_files(tmp_path):
     (tmp_path / "README").write_text("root readme", encoding="utf-8")
     (tmp_path / "README.md").write_text("markdown readme", encoding="utf-8")
     (tmp_path / "main.py").write_text("print('hello')", encoding="utf-8")
+    (tmp_path / "kubectl.yaml").write_text("apiVersion: v1", encoding="utf-8")
     (tmp_path / "docs").mkdir()
     (tmp_path / "docs" / "guide.md").write_text("guide", encoding="utf-8")
 
@@ -22,6 +23,7 @@ async def test_list_files_includes_root_level_files(tmp_path):
     assert "README" in indexed_paths
     assert "README.md" in indexed_paths
     assert "main.py" in indexed_paths
+    assert "kubectl.yaml" in indexed_paths
     assert "docs/guide.md" in indexed_paths
 
 
