@@ -1,6 +1,6 @@
 import httpx
 from typing import List
-from mcp_server.config import OllamaConfig
+from kb.config import OllamaConfig
 
 
 class OllamaEmbeddings:

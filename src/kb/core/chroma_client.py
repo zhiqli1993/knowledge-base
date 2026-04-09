@@ -2,7 +2,7 @@
 import chromadb
 from chromadb.config import Settings
 from typing import List, Dict, Any, Optional
-from mcp_server.config import ChromaConfig
+from kb.config import ChromaConfig
 
 class ChromaClient:
     def __init__(self, config: ChromaConfig):
@@ -47,6 +47,10 @@ class ChromaClient:
     def delete(self, ids: List[str]):
         """Delete documents by IDs"""
         self.collection.delete(ids=ids)
+
+    def delete_by_source(self, source_id: str):
+        """Delete all chunks belonging to a source."""
+        self.collection.delete(where={"source_id": source_id})
 
     def count(self) -> int:
         """Get document count"""

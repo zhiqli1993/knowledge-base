@@ -15,7 +15,7 @@
 ### Task 1: GitHub File Info Model
 
 **Files:**
-- Create: `mcp_server/sources/file_info.py`
+- Create: `kb/sources/file_info.py`
 - Test: `tests/unit/sources/test_file_info.py`
 
 **Step 1: Write file info model test**
@@ -23,7 +23,7 @@
 Create: `tests/unit/sources/test_file_info.py`
 
 ```python
-from mcp_server.sources.file_info import FileInfo
+from kb.sources.file_info import FileInfo
 
 def test_file_info_creation():
     """Test FileInfo model creation"""
@@ -59,7 +59,7 @@ Expected: FAIL with "ModuleNotFoundError"
 
 **Step 3: Implement FileInfo model**
 
-Create: `mcp_server/sources/file_info.py`
+Create: `kb/sources/file_info.py`
 
 ```python
 from typing import Optional
@@ -111,7 +111,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add mcp_server/sources/file_info.py tests/unit/sources/test_file_info.py
+git add kb/sources/file_info.py tests/unit/sources/test_file_info.py
 git commit -m "feat: add FileInfo model for GitHub file metadata"
 ```
 
@@ -120,7 +120,7 @@ git commit -m "feat: add FileInfo model for GitHub file metadata"
 ### Task 2: GitHub Repository Fetcher
 
 **Files:**
-- Create: `mcp_server/sources/github.py`
+- Create: `kb/sources/github.py`
 - Test: `tests/unit/sources/test_github.py`
 
 **Step 1: Write GitHub fetcher test**
@@ -129,8 +129,8 @@ Create: `tests/unit/sources/test_github.py`
 
 ```python
 import pytest
-from mcp_server.sources.github import GitHubRepoFetcher
-from mcp_server.config import GitHubConfig
+from kb.sources.github import GitHubRepoFetcher
+from kb.config import GitHubConfig
 
 def test_parse_repo_url():
     """Test parsing GitHub repo URL"""
@@ -170,15 +170,15 @@ Expected: FAIL with "ModuleNotFoundError"
 
 **Step 3: Implement GitHub fetcher**
 
-Create: `mcp_server/sources/github.py`
+Create: `kb/sources/github.py`
 
 ```python
 import re
 from typing import List, Optional, Dict, Any
 from pathlib import Path
 from github import Github
-from mcp_server.config import GitHubConfig
-from mcp_server.sources.file_info import FileInfo
+from kb.config import GitHubConfig
+from kb.sources.file_info import FileInfo
 
 class GitHubRepoFetcher:
     def __init__(
@@ -295,7 +295,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add mcp_server/sources/github.py tests/unit/sources/test_github.py
+git add kb/sources/github.py tests/unit/sources/test_github.py
 git commit -m "feat: add GitHub repository fetcher with pattern matching"
 ```
 
@@ -313,8 +313,8 @@ Create: `tests/integration/test_github_integration.py`
 ```python
 import pytest
 from unittest.mock import Mock, patch
-from mcp_server.sources.github import GitHubRepoFetcher
-from mcp_server.config import GitHubConfig
+from kb.sources.github import GitHubRepoFetcher
+from kb.config import GitHubConfig
 
 @pytest.mark.asyncio
 async def test_github_fetcher_integration():
@@ -341,7 +341,7 @@ async def test_github_fetcher_integration():
         )
     ]
 
-    with patch('mcp_server.sources.github.Github') as mock_github:
+    with patch('kb.sources.github.Github') as mock_github:
         mock_github.return_value.get_repo.return_value = mock_repo
 
         config = GitHubConfig()

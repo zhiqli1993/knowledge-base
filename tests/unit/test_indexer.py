@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
-from mcp_server.indexer import Indexer
-from mcp_server.config import Config
-from mcp_server.models import Source, SourceType, SourceStatus
+from kb.core.indexer import Indexer
+from kb.config import Config
+from kb.core.models import Source, SourceType, SourceStatus
 
 
 @pytest.fixture
@@ -15,7 +15,7 @@ def config():
 def indexer(config):
     """Create indexer instance with mocked dependencies"""
     with patch.object(Indexer, 'initialize', new_callable=AsyncMock), \
-         patch('mcp_server.indexer.ChromaClient') as mock_chroma_class:
+         patch('kb.core.indexer.ChromaClient') as mock_chroma_class:
 
         # Mock ChromaClient to avoid initialization
         mock_chroma_instance = Mock()
@@ -30,6 +30,9 @@ def indexer(config):
         mock_storage.update_source_status = AsyncMock()
         mock_storage.add_source = AsyncMock()
         mock_storage.add_document = AsyncMock()
+        mock_storage.update_document_indexing = AsyncMock()
+        mock_storage.update_source_progress = AsyncMock()
+        mock_storage.get_source = AsyncMock(return_value=Mock())
         indexer.storage = mock_storage
         return indexer
 
@@ -37,7 +40,7 @@ def indexer(config):
 @pytest.mark.asyncio
 async def test_index_github_repo(indexer):
     """Test complete GitHub repo indexing pipeline"""
-    with patch('mcp_server.indexer.GitHubRepoFetcher') as mock_fetcher_class, \
+    with patch('kb.core.indexer.GitHubRepoFetcher') as mock_fetcher_class, \
          patch.object(indexer.chroma, 'add_documents') as mock_add_chroma, \
          patch.object(indexer.embeddings, 'embed_batch', new_callable=AsyncMock) as mock_embed:
 
@@ -72,9 +75,32 @@ async def test_index_github_repo(indexer):
 
 
 @pytest.mark.asyncio
+async def test_index_local_source(indexer, tmp_path):
+    """Test local file indexing."""
+    local_file = tmp_path / "notes.md"
+    local_file.write_text("# Notes\n\nLocal content", encoding="utf-8")
+    indexer.config.local.allow_unrestricted_paths = True
+
+    with patch.object(indexer.chroma, 'add_documents') as mock_add_chroma, \
+         patch.object(indexer.embeddings, 'embed_batch', new_callable=AsyncMock) as mock_embed:
+
+        mock_embed.return_value = [[0.1, 0.2, 0.3]]
+
+        source = Source(
+            id=f"local:{local_file.resolve()}",
+            type=SourceType.LOCAL,
+            url=str(local_file.resolve()),
+            status=SourceStatus.PENDING
+        )
+
+        await indexer.index_source(source)
+        assert mock_add_chroma.called
+
+
+@pytest.mark.asyncio
 async def test_index_web_page(indexer):
     """Test web page indexing"""
-    with patch('mcp_server.indexer.WebPageFetcher') as mock_fetcher_class, \
+    with patch('kb.core.indexer.WebPageFetcher') as mock_fetcher_class, \
          patch.object(indexer.chroma, 'add_documents') as mock_add_chroma, \
          patch.object(indexer.embeddings, 'embed_batch', new_callable=AsyncMock) as mock_embed:
 
@@ -98,8 +124,8 @@ async def test_index_web_page(indexer):
 @pytest.mark.asyncio
 async def test_index_web_site(indexer):
     """Test website indexing via sitemap"""
-    with patch('mcp_server.indexer.WebSiteFetcher') as mock_site_fetcher_class, \
-         patch('mcp_server.indexer.WebPageFetcher') as mock_page_fetcher_class, \
+    with patch('kb.core.indexer.WebSiteFetcher') as mock_site_fetcher_class, \
+         patch('kb.core.indexer.WebPageFetcher') as mock_page_fetcher_class, \
          patch.object(indexer.chroma, 'add_documents') as mock_add_chroma, \
          patch.object(indexer.embeddings, 'embed_batch', new_callable=AsyncMock) as mock_embed:
 
@@ -132,7 +158,7 @@ async def test_index_web_site(indexer):
 @pytest.mark.asyncio
 async def test_index_source_updates_status(indexer):
     """Test that source status is updated during indexing"""
-    with patch('mcp_server.indexer.WebPageFetcher') as mock_fetcher_class, \
+    with patch('kb.core.indexer.WebPageFetcher') as mock_fetcher_class, \
          patch.object(indexer.chroma, 'add_documents') as mock_add_chroma, \
          patch.object(indexer.embeddings, 'embed_batch', new_callable=AsyncMock) as mock_embed:
 
@@ -165,7 +191,7 @@ async def test_index_source_handles_error(indexer):
         status=SourceStatus.PENDING
     )
 
-    with patch('mcp_server.indexer.WebPageFetcher') as mock_fetcher_class:
+    with patch('kb.core.indexer.WebPageFetcher') as mock_fetcher_class:
         mock_fetcher = Mock()
         mock_fetcher.fetch_content = AsyncMock(
             side_effect=Exception("Network error")
@@ -183,20 +209,6 @@ async def test_index_source_handles_error(indexer):
 
 
 @pytest.mark.asyncio
-async def test_index_source_unknown_type(indexer):
-    """Test that unknown source type raises ValueError"""
-    source = Source(
-        id="unknown:source",
-        type=SourceType.LOCAL,  # Not supported
-        url="file:///some/path",
-        status=SourceStatus.PENDING
-    )
-
-    with pytest.raises(ValueError, match="Unknown source type"):
-        await indexer.index_source(source)
-
-
-@pytest.mark.asyncio
 async def test_store_chunks_empty_list(indexer):
     """Test that _store_chunks handles empty chunks gracefully"""
     # Mock chroma.add_documents to track if it was called
@@ -211,7 +223,7 @@ async def test_store_chunks_empty_list(indexer):
 @pytest.mark.asyncio
 async def test_store_chunks_with_content(indexer):
     """Test that _store_chunks generates embeddings and stores chunks"""
-    from mcp_server.chunker import ChunkResult
+    from kb.core.chunker import ChunkResult
 
     with patch.object(indexer.embeddings, 'embed_batch', new_callable=AsyncMock) as mock_embed, \
          patch.object(indexer.chroma, 'add_documents') as mock_add_chroma:

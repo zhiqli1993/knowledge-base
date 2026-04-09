@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-from mcp_server.sources.github import GitHubRepoFetcher
-from mcp_server.config import GitHubConfig
+from kb.sources.github import GitHubRepoFetcher
+from kb.config import GitHubConfig
 
 @pytest.mark.asyncio
 async def test_github_fetcher_integration():
@@ -28,7 +28,7 @@ async def test_github_fetcher_integration():
     mock_repo = MagicMock()
     mock_repo.get_contents.return_value = [mock_readme, mock_node_modules]
 
-    with patch('mcp_server.sources.github.Github') as mock_github_class:
+    with patch('kb.sources.github.Github') as mock_github_class:
         mock_github_instance = MagicMock()
         mock_github_instance.get_repo.return_value = mock_repo
         mock_github_class.return_value = mock_github_instance
@@ -67,7 +67,7 @@ async def test_github_fetcher_with_directories():
         [mock_index]     # src/ directory
     ]
 
-    with patch('mcp_server.sources.github.Github') as mock_github_class:
+    with patch('kb.sources.github.Github') as mock_github_class:
         mock_github_instance = MagicMock()
         mock_github_instance.get_repo.return_value = mock_repo
         mock_github_class.return_value = mock_github_instance

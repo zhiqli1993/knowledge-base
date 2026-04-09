@@ -1,4 +1,4 @@
-from mcp_server.chunker import Chunker, ChunkResult
+from kb.core.chunker import Chunker, ChunkResult
 
 def test_chunk_markdown_preserves_headers():
     """Test markdown chunking preserves header hierarchy"""

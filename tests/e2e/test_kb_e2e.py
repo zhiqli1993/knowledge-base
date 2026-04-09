@@ -7,11 +7,11 @@ import asyncio
 import sys
 from pathlib import Path
 
-from mcp_server.config import Config
-from mcp_server.storage import Storage
-from mcp_server.indexer import Indexer
-from mcp_server.retriever import Retriever
-from mcp_server.models import Source, SourceType, SourceStatus
+from kb.config import Config
+from kb.core.storage import Storage
+from kb.core.indexer import Indexer
+from kb.core.retriever import Retriever
+from kb.core.models import Source, SourceType, SourceStatus
 
 
 async def main():
@@ -21,7 +21,7 @@ async def main():
     print()
 
     # Load configuration
-    config_path = Path("~/.config/knowledge-base/config.json").expanduser()
+    config_path = Path("~/.kb/config.json").expanduser()
     print(f"📁 Loading config from: {config_path}")
 
     if config_path.exists():

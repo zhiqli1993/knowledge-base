@@ -14,7 +14,7 @@
 
 **示例搜索**:
 ```bash
-$ python3 kb_cli.py search "customer support chatbot"
+$ kb search "customer support chatbot"
 
 Found 5 results:
 - customer-support-agent/README.md (score: 0.003)
@@ -30,11 +30,11 @@ Found 5 results:
 
 **搜索测试**:
 ```bash
-$ python3 kb_cli.py search "FastAPI web framework"
+$ kb search "FastAPI web framework"
 Found 3 results with relevant content
 ```
 
-### 3. 命令行工具 (kb_cli.py) ✅
+### 3. 命令行工具 (`kb`) ✅
 
 所有命令正常工作:
 - ✅ `status` - 显示知识库状态
@@ -120,7 +120,7 @@ Embedding Model: nomic-embed-text (768-dim)
 
 ## 配置文件
 
-当前配置位置: `~/.config/knowledge-base/config.json`
+当前配置位置: `~/.kb/config.json`
 
 ```json
 {

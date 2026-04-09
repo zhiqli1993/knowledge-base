@@ -1,5 +1,5 @@
 from datetime import datetime
-from mcp_server.models import Source, Document, Chunk, SearchResult
+from kb.core.models import Source, Document, Chunk, SearchResult
 
 def test_source_creation():
     """Test Source model creation"""

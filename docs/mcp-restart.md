@@ -26,10 +26,9 @@ MCP server 进程在运行旧代码，需要重新加载最新的修复。
   "mcpServers": {
     "knowledge-base": {
       "command": "python3",
-      "args": ["-m", "mcp_server.server"],
+      "args": ["-m", "kb.mcp.server"],
       "env": {
-        "KNOWLEDGE_BASE_CONFIG": "/Users/zhiqli/.config/knowledge-base/config.json",
-        "PYTHONPATH": "/Users/zhiqli/knowledge-base"
+        "KNOWLEDGE_BASE_CONFIG": "~/.kb/config.json"
       }
     }
   }
@@ -71,14 +70,14 @@ Embedding Model: nomic-embed-text
 
 ```bash
 # 检查状态
-python3 kb_cli.py status
+kb status
 
 # 搜索
-python3 kb_cli.py search "your query"
+kb search "your query"
 
 # 添加源
-python3 kb_cli.py add-url https://example.com
-python3 kb_cli.py add-repo owner/repo
+kb add-url https://example.com
+kb add-repo owner/repo
 ```
 
 所有功能都可以通过 CLI 正常使用！

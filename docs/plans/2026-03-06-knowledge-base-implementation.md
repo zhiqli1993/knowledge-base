@@ -29,7 +29,7 @@ Create: `tests/test_project_structure.py`
 import os
 from pathlib import Path
 
-def test_mcp_server_directory_exists():
+def test_kb_directory_exists():
     """Verify mcp-server directory structure"""
     assert Path("mcp-server").exists()
     assert Path("mcp-server/__init__.py").exists()
@@ -150,7 +150,7 @@ Create: `tests/unit/test_config.py`
 ```python
 import pytest
 from pathlib import Path
-from mcp_server.config import Config
+from kb.config import Config
 
 def test_config_load_default():
     """Test loading default configuration"""
@@ -175,7 +175,7 @@ def test_config_invalid_chunk_size():
 **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/unit/test_config.py -v`
-Expected: FAIL with "ModuleNotFoundError: No module named 'mcp_server.config'"
+Expected: FAIL with "ModuleNotFoundError: No module named 'kb.config'"
 
 **Step 3: Implement configuration module**
 
@@ -290,7 +290,7 @@ Create: `tests/unit/test_models.py`
 
 ```python
 from datetime import datetime
-from mcp_server.models import Source, Document, Chunk, SearchResult
+from kb.core.models import Source, Document, Chunk, SearchResult
 
 def test_source_creation():
     """Test Source model creation"""
@@ -328,7 +328,7 @@ def test_chunk_id_generation():
 **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/unit/test_models.py -v`
-Expected: FAIL with "ModuleNotFoundError: No module named 'mcp_server.models'"
+Expected: FAIL with "ModuleNotFoundError: No module named 'kb.models'"
 
 **Step 3: Implement data models**
 
@@ -422,8 +422,8 @@ Create: `tests/unit/test_storage.py`
 import pytest
 import aiosqlite
 from pathlib import Path
-from mcp_server.storage import Storage
-from mcp_server.models import Source, SourceType, SourceStatus
+from kb.core.storage import Storage
+from kb.core.models import Source, SourceType, SourceStatus
 
 @pytest.mark.asyncio
 async def test_storage_init_creates_tables(tmp_path):
@@ -484,7 +484,7 @@ async def test_storage_update_source_status(tmp_path):
 **Step 2: Run test to verify it fails**
 
 Run: `pytest tests/unit/test_storage.py -v`
-Expected: FAIL with "ModuleNotFoundError: No module named 'mcp_server.storage'"
+Expected: FAIL with "ModuleNotFoundError: No module named 'kb.storage'"
 
 **Step 3: Implement storage layer**
 
@@ -496,7 +496,7 @@ import json
 from pathlib import Path
 from typing import Optional, List
 from datetime import datetime
-from mcp_server.models import Source, Document, SourceStatus, SourceType
+from kb.core.models import Source, Document, SourceStatus, SourceType
 
 class Storage:
     def __init__(self, db_path: Path):
@@ -681,8 +681,8 @@ Create: `tests/unit/test_embeddings.py`
 
 ```python
 import pytest
-from mcp_server.embeddings import OllamaEmbeddings
-from mcp_server.config import OllamaConfig
+from kb.core.embeddings import OllamaEmbeddings
+from kb.config import OllamaConfig
 
 @pytest.mark.asyncio
 async def test_ollama_embed_single():
@@ -719,7 +719,7 @@ Create: `mcp-server/embeddings.py`
 ```python
 import httpx
 from typing import List
-from mcp_server.config import OllamaConfig
+from kb.config import OllamaConfig
 
 class OllamaEmbeddings:
     def __init__(self, config: OllamaConfig):
@@ -803,7 +803,7 @@ git commit -m "feat: add Ollama embedding client with batch support"
 Create: `tests/unit/test_chunker.py`
 
 ```python
-from mcp_server.chunker import Chunker, ChunkResult
+from kb.core.chunker import Chunker, ChunkResult
 
 def test_chunk_markdown_preserves_headers():
     """Test markdown chunking preserves header hierarchy"""

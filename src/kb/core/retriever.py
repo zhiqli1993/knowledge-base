@@ -1,8 +1,8 @@
 from typing import List, Optional
-from mcp_server.config import Config
-from mcp_server.models import SearchResult
-from mcp_server.chroma_client import ChromaClient
-from mcp_server.embeddings import OllamaEmbeddings
+from kb.config import Config
+from kb.core.models import SearchResult
+from kb.core.chroma_client import ChromaClient
+from kb.core.embeddings import OllamaEmbeddings
 
 
 class Retriever:

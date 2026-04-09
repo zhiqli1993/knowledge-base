@@ -5,11 +5,11 @@ Tests the full pipeline: add source -> index -> search across different source t
 import pytest
 from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch, MagicMock
-from mcp_server.config import Config, ChromaConfig
-from mcp_server.storage import Storage
-from mcp_server.indexer import Indexer
-from mcp_server.retriever import Retriever
-from mcp_server.models import Source, SourceType, SourceStatus
+from kb.config import Config, ChromaConfig
+from kb.core.storage import Storage
+from kb.core.indexer import Indexer
+from kb.core.retriever import Retriever
+from kb.core.models import Source, SourceType, SourceStatus
 
 
 @pytest.fixture
@@ -62,14 +62,14 @@ async def test_complete_github_workflow(temp_dir, config, mock_chroma_client):
     storage = Storage(storage_path)
     await storage.init()
 
-    with patch('mcp_server.indexer.ChromaClient', return_value=mock_chroma_client):
+    with patch('kb.core.indexer.ChromaClient', return_value=mock_chroma_client):
         indexer = Indexer(config)
         await indexer.initialize()
 
         retriever = Retriever(config)
 
         # Mock GitHub fetcher
-        with patch('mcp_server.indexer.GitHubRepoFetcher') as mock_fetcher_class, \
+        with patch('kb.core.indexer.GitHubRepoFetcher') as mock_fetcher_class, \
              patch.object(indexer.embeddings, 'embed_batch', new_callable=AsyncMock) as mock_embed:
 
             # Setup mock file
@@ -129,7 +129,7 @@ Install dependencies with pip install.
             assert mock_chroma_client.add_documents.called
 
     # Step 3: Search
-    with patch('mcp_server.retriever.ChromaClient', return_value=mock_chroma_client) as mock_chroma_class:
+    with patch('kb.core.retriever.ChromaClient', return_value=mock_chroma_client) as mock_chroma_class:
         retriever = Retriever(config)
 
         with patch.object(retriever.embeddings, 'embed', new_callable=AsyncMock) as mock_query_embed:
@@ -170,12 +170,12 @@ async def test_complete_web_page_workflow(temp_dir, config, mock_chroma_client):
     storage = Storage(storage_path)
     await storage.init()
 
-    with patch('mcp_server.indexer.ChromaClient', return_value=mock_chroma_client):
+    with patch('kb.core.indexer.ChromaClient', return_value=mock_chroma_client):
         indexer = Indexer(config)
         await indexer.initialize()
 
         # Mock web fetcher
-        with patch('mcp_server.indexer.WebPageFetcher') as mock_fetcher_class, \
+        with patch('kb.core.indexer.WebPageFetcher') as mock_fetcher_class, \
              patch.object(indexer.embeddings, 'embed_batch', new_callable=AsyncMock) as mock_embed:
 
             mock_fetcher = Mock()
@@ -215,7 +215,7 @@ async def main():
             assert indexed_source.status == SourceStatus.READY
 
     # Search - need to mock Retriever's ChromaClient
-    with patch('mcp_server.retriever.ChromaClient', return_value=mock_chroma_client):
+    with patch('kb.core.retriever.ChromaClient', return_value=mock_chroma_client):
         retriever = Retriever(config)
 
         with patch.object(retriever.embeddings, 'embed', new_callable=AsyncMock) as mock_query_embed:
@@ -254,13 +254,13 @@ async def test_multiple_sources_with_filtering(temp_dir, config, mock_chroma_cli
     storage = Storage(storage_path)
     await storage.init()
 
-    with patch('mcp_server.indexer.ChromaClient', return_value=mock_chroma_client):
+    with patch('kb.core.indexer.ChromaClient', return_value=mock_chroma_client):
         indexer = Indexer(config)
         await indexer.initialize()
 
         # Mock both GitHub and web fetchers
-        with patch('mcp_server.indexer.GitHubRepoFetcher') as mock_gh, \
-             patch('mcp_server.indexer.WebPageFetcher') as mock_web, \
+        with patch('kb.core.indexer.GitHubRepoFetcher') as mock_gh, \
+             patch('kb.core.indexer.WebPageFetcher') as mock_web, \
              patch.object(indexer.embeddings, 'embed_batch', new_callable=AsyncMock) as mock_embed:
 
             # Setup GitHub mock
@@ -305,7 +305,7 @@ async def test_multiple_sources_with_filtering(temp_dir, config, mock_chroma_cli
             await indexer.index_source(web_source)
 
     # Search with GitHub filter
-    with patch('mcp_server.retriever.ChromaClient', return_value=mock_chroma_client):
+    with patch('kb.core.retriever.ChromaClient', return_value=mock_chroma_client):
         retriever = Retriever(config)
 
         with patch.object(retriever.embeddings, 'embed', new_callable=AsyncMock) as mock_query:
@@ -366,12 +366,12 @@ async def test_error_handling_workflow(temp_dir, config, mock_chroma_client):
     storage = Storage(storage_path)
     await storage.init()
 
-    with patch('mcp_server.indexer.ChromaClient', return_value=mock_chroma_client):
+    with patch('kb.core.indexer.ChromaClient', return_value=mock_chroma_client):
         indexer = Indexer(config)
         await indexer.initialize()
 
         # Mock fetcher that raises error
-        with patch('mcp_server.indexer.GitHubRepoFetcher') as mock_fetcher_class:
+        with patch('kb.core.indexer.GitHubRepoFetcher') as mock_fetcher_class:
             mock_fetcher = Mock()
             mock_fetcher.list_files = AsyncMock(side_effect=RuntimeError("API rate limit exceeded"))
             mock_fetcher.close = Mock()
@@ -399,7 +399,7 @@ async def test_error_handling_workflow(temp_dir, config, mock_chroma_client):
 @pytest.mark.asyncio
 async def test_search_with_empty_results(temp_dir, config, mock_chroma_client):
     """Test search returns empty list when no matches found"""
-    with patch('mcp_server.retriever.ChromaClient', return_value=mock_chroma_client):
+    with patch('kb.core.retriever.ChromaClient', return_value=mock_chroma_client):
         retriever = Retriever(config)
 
         with patch.object(retriever.embeddings, 'embed', new_callable=AsyncMock) as mock_embed:
@@ -419,7 +419,7 @@ async def test_search_with_empty_results(temp_dir, config, mock_chroma_client):
 @pytest.mark.asyncio
 async def test_search_with_similarity_threshold(temp_dir, config, mock_chroma_client):
     """Test search respects similarity threshold"""
-    with patch('mcp_server.retriever.ChromaClient', return_value=mock_chroma_client):
+    with patch('kb.core.retriever.ChromaClient', return_value=mock_chroma_client):
         retriever = Retriever(config)
 
         with patch.object(retriever.embeddings, 'embed', new_callable=AsyncMock) as mock_embed:
@@ -451,11 +451,11 @@ async def test_index_source_status_transitions(temp_dir, config, mock_chroma_cli
     storage = Storage(storage_path)
     await storage.init()
 
-    with patch('mcp_server.indexer.ChromaClient', return_value=mock_chroma_client):
+    with patch('kb.core.indexer.ChromaClient', return_value=mock_chroma_client):
         indexer = Indexer(config)
         await indexer.initialize()
 
-        with patch('mcp_server.indexer.WebPageFetcher') as mock_fetcher_class, \
+        with patch('kb.core.indexer.WebPageFetcher') as mock_fetcher_class, \
              patch.object(indexer.embeddings, 'embed_batch', new_callable=AsyncMock) as mock_embed:
 
             mock_fetcher = Mock()
@@ -492,7 +492,7 @@ async def test_complete_workflow_with_all_source_types(temp_dir, config, mock_ch
     storage = Storage(storage_path)
     await storage.init()
 
-    with patch('mcp_server.indexer.ChromaClient', return_value=mock_chroma_client):
+    with patch('kb.core.indexer.ChromaClient', return_value=mock_chroma_client):
         indexer = Indexer(config)
         await indexer.initialize()
 
@@ -512,7 +512,7 @@ async def test_complete_workflow_with_all_source_types(temp_dir, config, mock_ch
         ]
 
         for source_data in sources_to_test:
-            with patch('mcp_server.indexer.WebPageFetcher') if source_data["type"] == SourceType.WEB_PAGE else patch('mcp_server.indexer.GitHubRepoFetcher') as mock_fetcher_class, \
+            with patch('kb.core.indexer.WebPageFetcher') if source_data["type"] == SourceType.WEB_PAGE else patch('kb.core.indexer.GitHubRepoFetcher') as mock_fetcher_class, \
                  patch.object(indexer.embeddings, 'embed_batch', new_callable=AsyncMock) as mock_embed:
 
                 mock_fetcher = Mock()
@@ -550,7 +550,7 @@ async def test_complete_workflow_with_all_source_types(temp_dir, config, mock_ch
                 assert indexed.status == SourceStatus.READY
 
     # Verify we can search across all sources
-    with patch('mcp_server.retriever.ChromaClient', return_value=mock_chroma_client):
+    with patch('kb.core.retriever.ChromaClient', return_value=mock_chroma_client):
         retriever = Retriever(config)
 
         with patch.object(retriever.embeddings, 'embed', new_callable=AsyncMock) as mock_embed:

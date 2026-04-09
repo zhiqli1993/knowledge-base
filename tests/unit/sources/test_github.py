@@ -1,6 +1,6 @@
 import pytest
-from mcp_server.sources.github import GitHubRepoFetcher
-from mcp_server.config import GitHubConfig
+from kb.sources.github import GitHubRepoFetcher
+from kb.config import GitHubConfig
 
 def test_parse_repo_url():
     """Test parsing GitHub repo URL"""

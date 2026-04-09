@@ -32,6 +32,11 @@ class Source(BaseModel):
     last_indexed_at: Optional[datetime] = None
     document_count: int = 0
     chunk_count: int = 0
+    progress_phase: Optional[str] = None
+    progress_message: Optional[str] = None
+    progress_total: int = 0
+    progress_processed: int = 0
+    progress_updated_at: Optional[datetime] = None
 
 class Document(BaseModel):
     id: str

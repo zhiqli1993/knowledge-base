@@ -23,13 +23,14 @@ knowledge-base-plugin/
 │       ├── SKILL.md             # Skill definition (auto-loaded by Claude)
 │       └── evals/
 │           └── evals.json       # Test cases
-├── mcp_server/                  # MCP server implementation (symlink)
-├── kb_cli.py                    # CLI tool (symlink)
+├── src/kb/              # Python package (symlink)
+│   ├── mcp/server.py    # MCP server entrypoint
+│   └── cli/main.py      # CLI tool
 ├── install.sh                   # Automated installer
 ├── README.md                    # Full documentation
 ├── QUICKSTART.md                # 5-minute getting started guide
 ├── USAGE.md                     # Detailed usage guide
-├── TEST_RESULTS.md              # Test results and examples
+├── docs/test-results.md              # Test results and examples
 └── LICENSE                      # MIT License
 ```
 
@@ -62,7 +63,7 @@ ollama pull nomic-embed-text
 cp -r skills/knowledge-base ~/.claude/skills/
 
 # 4. Create config
-mkdir -p ~/.config/knowledge-base
+mkdir -p ~/.kb
 # ... (see install.sh for config template)
 
 # 5. Restart Claude Code
@@ -100,12 +101,12 @@ User → Claude Code → Knowledge Base Skill → MCP Server
    - Triggers on natural language about knowledge base
    - Provides instructions for using MCP tools
 
-2. **MCP Server** (`mcp_server/`)
+2. **MCP Server** (`src/kb/`)
    - Provides 7 MCP tools
    - Handles indexing and searching
    - Manages vector database
 
-3. **CLI Tool** (`kb_cli.py`)
+3. **CLI Tool** (`kb` / `src/kb/cli/main.py`)
    - Direct command-line access
    - Useful for testing and debugging
 
@@ -148,9 +149,9 @@ mcp__knowledge-base__kb_search(query="async examples", n_results=5)
 ### CLI Usage
 
 ```bash
-python3 kb_cli.py status
-python3 kb_cli.py add-repo owner/repo
-python3 kb_cli.py search "your query"
+kb status
+kb add-repo owner/repo
+kb search "your query"
 ```
 
 ## Requirements
@@ -162,7 +163,7 @@ python3 kb_cli.py search "your query"
 
 ## Configuration
 
-Config file: `~/.config/knowledge-base/config.json`
+Config file: `~/.kb/config.json`
 
 Key settings:
 - `chroma.persist_directory` - Where to store data
@@ -176,7 +177,7 @@ Key settings:
 
 ```bash
 # End-to-end test
-python3 test_kb_e2e.py
+python3 tests/e2e/test_kb_e2e.py
 
 # Skill evaluation tests
 cd skills/knowledge-base/evals
@@ -185,7 +186,7 @@ cd skills/knowledge-base/evals
 
 ### Test Results
 
-See `TEST_RESULTS.md` for:
+See `docs/test-results.md` for:
 - ✅ All tests passed (100% pass rate)
 - Performance metrics
 - Example outputs
@@ -222,11 +223,12 @@ The plugin is part of a larger project:
 ```
 knowledge-base/
 ├── knowledge-base-plugin/     # This plugin
-├── mcp_server/                # MCP server implementation
-├── kb_cli.py                  # CLI tool
-├── test_kb_e2e.py            # Tests
+├── src/kb/                    # Python package
+│   ├── mcp/server.py          # MCP server entrypoint
+│   └── cli/main.py            # CLI implementation
+├── tests/e2e/test_kb_e2e.py            # Tests
 ├── .mcp.json                  # MCP config for project
-└── requirements.txt           # Dependencies
+└── pyproject.toml             # Dependencies and packaging
 ```
 
 The plugin uses symlinks to the actual code, making it easy to develop and test.
@@ -235,7 +237,7 @@ The plugin uses symlinks to the actual code, making it easy to develop and test.
 
 1. Edit files in the main project directory
 2. Changes are immediately reflected in the plugin (via symlinks)
-3. Test with `python3 test_kb_e2e.py`
+3. Test with `python3 tests/e2e/test_kb_e2e.py`
 4. Update version in `.claude-plugin/plugin.json`
 5. Commit and tag
 

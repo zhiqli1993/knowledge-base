@@ -1,6 +1,6 @@
 import pytest
-from mcp_server.embeddings import OllamaEmbeddings
-from mcp_server.config import OllamaConfig
+from kb.core.embeddings import OllamaEmbeddings
+from kb.config import OllamaConfig
 
 
 @pytest.mark.asyncio

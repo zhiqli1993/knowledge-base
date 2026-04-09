@@ -3,8 +3,8 @@ import fnmatch
 from typing import List, Optional
 from pathlib import Path
 from github import Github, Auth
-from mcp_server.config import GitHubConfig
-from mcp_server.sources.file_info import FileInfo
+from kb.config import GitHubConfig
+from kb.sources.file_info import FileInfo
 
 class GitHubRepoFetcher:
     def __init__(

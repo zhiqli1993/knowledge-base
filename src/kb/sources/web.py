@@ -3,8 +3,8 @@ from typing import Optional, List
 import httpx
 import trafilatura
 from xml.etree import ElementTree as ET
-from mcp_server.config import WebConfig
-from mcp_server.sources.file_info import FileInfo
+from kb.config import WebConfig
+from kb.sources.file_info import FileInfo
 
 
 class WebPageFetcher:

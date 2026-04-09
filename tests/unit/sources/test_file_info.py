@@ -1,4 +1,4 @@
-from mcp_server.sources.file_info import FileInfo
+from kb.sources.file_info import FileInfo
 
 def test_file_info_creation():
     """Test FileInfo model creation"""

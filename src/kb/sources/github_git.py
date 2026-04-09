@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, Optional
 import subprocess
 import fnmatch
-from mcp_server.sources.file_info import FileInfo
+from kb.sources.file_info import FileInfo
 
 
 class GitHubRepoCloner:

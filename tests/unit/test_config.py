@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from mcp_server.config import Config, ChromaConfig
+from kb.config import Config, ChromaConfig, DEFAULT_CONFIG_PATH, resolve_config_path
 
 def test_config_load_default():
     """Test loading default configuration"""
@@ -50,3 +50,22 @@ def test_chroma_config_expand_tilde():
     expanded = config.persist_directory_expanded
     assert str(expanded).startswith("/")  # Should be absolute path
     assert "~" not in str(expanded)
+
+
+def test_service_config_defaults():
+    """Test service config defaults."""
+    config = Config.load_default()
+    assert config.service.host == "127.0.0.1"
+    assert config.service.port == 8864
+    assert config.service.effective_base_url == "http://127.0.0.1:8864"
+
+
+def test_resolve_config_path_prefers_override(tmp_path):
+    """Test config path override wins."""
+    override = tmp_path / "custom.json"
+    assert resolve_config_path(str(override)) == override
+
+
+def test_resolve_config_path_defaults_to_kb_path():
+    """Test default config path uses ~/.kb/config.json."""
+    assert resolve_config_path() == DEFAULT_CONFIG_PATH

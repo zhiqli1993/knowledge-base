@@ -20,7 +20,7 @@ ollama serve
 ### 2. 验证配置文件
 ```bash
 # 检查 knowledge base 配置
-cat ~/.config/knowledge-base/config.json
+cat ~/.kb/config.json
 
 # 检查项目 MCP 配置
 cat /Users/zhiqli/knowledge-base/.mcp.json
@@ -31,12 +31,12 @@ cat /Users/zhiqli/knowledge-base/.mcp.json
 cd /Users/zhiqli/knowledge-base
 
 # 测试服务器可以创建
-python3 -c "from mcp_server.server import create_server; s = create_server(); print(f'✅ Server {s.name} created')"
+python3 -c "from kb.mcp.server import create_server; s = create_server(); print(f'✅ Server {s.name} created')"
 
 # 测试异步初始化
 python3 << 'PYEOF'
 import asyncio
-from mcp_server.server import create_server
+from kb.mcp.server import create_server
 
 async def test():
     server = create_server()
@@ -155,9 +155,9 @@ Added https://docs.python.org/3/library/asyncio.html to knowledge base. Indexing
 rm -rf ~/.local/share/knowledge-base/
 
 # 删除配置（可选）
-rm -rf ~/.config/knowledge-base/
+rm -rf ~/.kb/
 
 # 重新创建配置
-mkdir -p ~/.config/knowledge-base
+mkdir -p ~/.kb
 # 然后复制配置文件...
 ```

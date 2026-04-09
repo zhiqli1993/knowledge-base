@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, Mock, AsyncMock
-from mcp_server.sources.web import WebPageFetcher, WebSiteFetcher
-from mcp_server.config import WebConfig
+from kb.sources.web import WebPageFetcher, WebSiteFetcher
+from kb.config import WebConfig
 
 
 @pytest.mark.asyncio

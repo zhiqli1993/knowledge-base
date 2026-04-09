@@ -111,7 +111,7 @@ The plugin uses an MCP (Model Context Protocol) server that provides these tools
 
 ### Configuration
 
-Config file: `~/.config/knowledge-base/config.json`
+Config file: `~/.kb/config.json`
 
 ```json
 {
@@ -208,16 +208,16 @@ You can also use the CLI directly:
 
 ```bash
 # Check status
-python kb_cli.py status
+kb status
 
 # Add repo
-python kb_cli.py add-repo owner/repo
+kb add-repo owner/repo
 
 # Search
-python kb_cli.py search "your query"
+kb search "your query"
 
 # List sources
-python kb_cli.py list
+kb list
 ```
 
 ## Development
@@ -232,17 +232,18 @@ knowledge-base-plugin/
 │   └── knowledge-base/
 │       ├── SKILL.md         # Skill definition
 │       └── evals/           # Test cases
-├── mcp_server/              # MCP server implementation
-├── kb_cli.py                # CLI tool
+├── src/kb/          # Python package
+│   ├── mcp/server.py # MCP server entrypoint
+│   └── cli/main.py   # CLI tool
 ├── README.md
-└── requirements.txt
+└── pyproject.toml
 ```
 
 ### Running Tests
 
 ```bash
 # End-to-end test
-python test_kb_e2e.py
+python tests/e2e/test_kb_e2e.py
 
 # Run skill evals
 cd skills/knowledge-base/evals

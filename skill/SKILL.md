@@ -1,6 +1,6 @@
 # Skill: knowledge-base
 
-This skill provides commands for the Knowledge Base System - a personal knowledge extraction and retrieval system that indexes GitHub repositories, documentation sites, and web pages into a local vector database.
+This skill provides commands for the Knowledge Base System - a local-first knowledge extraction and retrieval system that indexes local files/directories, GitHub repositories, documentation sites, and web pages into a local vector database.
 
 ## Commands
 
@@ -23,6 +23,17 @@ Add a single web page to the knowledge base.
 
 **Example:**
 - `/kb-add-url https://docs.python.org/3/library/asyncio.html`
+
+### /kb-add-local <path>
+Add a local file or directory to the knowledge base.
+
+**Usage:**
+- `/kb-add-local /absolute/path/to/project`
+- `/kb-add-local ./notes`
+
+**Examples:**
+- `/kb-add-local /Users/zhiqli/Documents/engineering-notes`
+- `/kb-add-local ./docs`
 
 ### /kb-add-site <site-url>
 Add an entire website (via sitemap) to the knowledge base.
@@ -77,7 +88,7 @@ Show knowledge base statistics and indexing status.
 
 This skill interfaces with the Knowledge Base MCP Server which provides:
 
-1. **Source Adapters**: GitHub, single page, website sitemap
+1. **Source Adapters**: Local filesystem, GitHub, single page, website sitemap
 2. **Content Extraction**: Markdown/code from repos, trafilatura for web pages
 3. **Chunking**: Header-aware markdown chunking, sliding window for plain text
 4. **Embeddings**: Ollama (nomic-embed-text) for local vector generation
@@ -89,7 +100,7 @@ This skill interfaces with the Knowledge Base MCP Server which provides:
 The MCP server is configured via environment variables or config file:
 
 ```bash
-# ~/.config/knowledge-base/config.json
+# ~/.kb/config.json
 {
   "storage": {
     "persist_directory": "~/.local/share/knowledge-base",

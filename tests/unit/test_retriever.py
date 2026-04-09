@@ -1,14 +1,14 @@
 import pytest
 from unittest.mock import Mock, AsyncMock, patch
-from mcp_server.retriever import Retriever
-from mcp_server.config import Config
-from mcp_server.models import SearchResult
+from kb.core.retriever import Retriever
+from kb.config import Config
+from kb.core.models import SearchResult
 
 
 @pytest.mark.asyncio
 async def test_search_returns_results():
     """Test semantic search returns formatted results"""
-    with patch('mcp_server.retriever.ChromaClient') as mock_chroma_class:
+    with patch('kb.core.retriever.ChromaClient') as mock_chroma_class:
         # Mock ChromaClient
         mock_chroma = Mock()
         mock_chroma_class.return_value = mock_chroma
@@ -40,7 +40,7 @@ async def test_search_returns_results():
 @pytest.mark.asyncio
 async def test_search_with_source_filter():
     """Test search with source type filtering"""
-    with patch('mcp_server.retriever.ChromaClient') as mock_chroma_class:
+    with patch('kb.core.retriever.ChromaClient') as mock_chroma_class:
         mock_chroma = Mock()
         mock_chroma_class.return_value = mock_chroma
 
@@ -66,7 +66,7 @@ async def test_search_with_source_filter():
 @pytest.mark.asyncio
 async def test_search_empty_results():
     """Test search with no matching results"""
-    with patch('mcp_server.retriever.ChromaClient') as mock_chroma_class:
+    with patch('kb.core.retriever.ChromaClient') as mock_chroma_class:
         mock_chroma = Mock()
         mock_chroma_class.return_value = mock_chroma
 

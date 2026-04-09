@@ -78,16 +78,16 @@ Use the CLI tool:
 
 ```bash
 # Check status
-python3 kb_cli.py status
+kb status
 
 # Add a repo
-python3 kb_cli.py add-repo anthropics/anthropic-quickstarts main
+kb add-repo anthropics/anthropic-quickstarts main
 
 # Search
-python3 kb_cli.py search "async python"
+kb search "async python"
 
 # List all sources
-python3 kb_cli.py list
+kb list
 ```
 
 ## Troubleshooting
@@ -126,21 +126,21 @@ ollama pull nomic-embed-text
    cat /Users/zhiqli/knowledge-base/.mcp.json
    ```
 
-2. Verify PYTHONPATH is correct
+2. Verify the package is installed (`pip install -e .`)
 
 3. Restart Claude Code
 
 ## What's Next?
 
 - Read [USAGE.md](USAGE.md) for detailed features
-- Check [TEST_RESULTS.md](TEST_RESULTS.md) for examples
-- Run tests: `python3 test_kb_e2e.py`
+- Check [docs/test-results.md](docs/test-results.md) for examples
+- Run tests: `python3 tests/e2e/test_kb_e2e.py`
 
 ## Getting Help
 
 - **Issues**: https://github.com/zhiqli/knowledge-base/issues
 - **Docs**: See README.md and USAGE.md
-- **Examples**: See TEST_RESULTS.md
+- **Examples**: See docs/test-results.md
 
 ## Uninstall
 
@@ -152,5 +152,5 @@ rm -rf ~/.claude/skills/knowledge-base
 rm -rf ~/.local/share/knowledge-base
 
 # Remove config (optional)
-rm -rf ~/.config/knowledge-base
+rm -rf ~/.kb
 ```

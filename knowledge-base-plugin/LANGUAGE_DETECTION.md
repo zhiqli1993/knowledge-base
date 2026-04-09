@@ -74,7 +74,7 @@ await kb_add_repo(
 
 ### Disable Auto-Detection
 
-In `~/.config/knowledge-base/config.json`:
+In `~/.kb/config.json`:
 
 ```json
 {
@@ -114,7 +114,7 @@ These are always excluded regardless of language:
 
 ### Go Project (fastapi/fastapi detected as Python)
 ```bash
-kb_cli.py add-repo fastapi/fastapi
+kb add-repo fastapi/fastapi
 
 # Auto-detects Python, excludes:
 # - __pycache__/
@@ -130,7 +130,7 @@ kb_cli.py add-repo fastapi/fastapi
 # Excludes node_modules/ but not venv/
 
 # Solution: Manually specify exclude patterns
-kb_cli.py add-repo owner/mixed-repo \
+kb add-repo owner/mixed-repo \
   --exclude "node_modules/**" "venv/**"
 ```
 
@@ -149,7 +149,7 @@ Example: Node.js project with 50K files in `node_modules/`
 
 ### Enable/Disable Auto-Detection
 
-Edit `~/.config/knowledge-base/config.json`:
+Edit `~/.kb/config.json`:
 
 ```json
 {

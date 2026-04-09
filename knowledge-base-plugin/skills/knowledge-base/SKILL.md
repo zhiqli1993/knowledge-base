@@ -5,12 +5,13 @@ description: Manage a personal knowledge base for indexing and searching GitHub 
 
 # Knowledge Base Skill
 
-This skill helps you manage a personal knowledge base system that indexes GitHub repositories, documentation sites, and web pages into a searchable vector database.
+This skill helps you manage a local-first knowledge base system that indexes local files/directories, GitHub repositories, documentation sites, and web pages into a searchable vector database.
 
 ## When to Use This Skill
 
 Invoke this skill when the user wants to:
 - **Add content**: Index GitHub repos, web pages, or entire websites
+- **Add local content**: Index a local file or directory for agent retrieval
 - **Search**: Find information across their indexed content
 - **Manage**: View what's indexed, check status, or remove sources
 - **Ask about**: Their knowledge base system or what's available
@@ -74,6 +75,27 @@ User: "Index the FastAPI documentation homepage"
   - url: "https://fastapi.tiangolo.com/"
 ```
 
+### 2b. Add Local File or Directory
+
+Add a local file or directory.
+
+**When to use**: User wants Claude Code or Cursor to retrieve from a local project folder, notes directory, or a specific file.
+
+**Tool**: `mcp__knowledge-base__kb_add_local`
+
+**Parameters**:
+- `path`: Local file or directory path
+- `include`: Optional include patterns for directories
+- `exclude`: Optional exclude patterns for directories
+
+**Example invocation**:
+```
+User: "Add ./docs to my knowledge base"
+
+→ Call mcp__knowledge-base__kb_add_local with:
+  - path: "./docs"
+```
+
 ### 3. Add Website
 
 Add an entire website via sitemap (indexes multiple pages).
@@ -106,7 +128,7 @@ Search across all indexed content using semantic search.
 **Parameters**:
 - `query`: Natural language search query
 - `n_results`: Number of results (default: 5)
-- `source_filter`: Optional filter by source type ("github", "web_page", "web_site")
+- `source_filter`: Optional filter by source type ("github", "web_page", "web_site", "local")
 
 **Example invocation**:
 ```
@@ -156,7 +178,7 @@ List all indexed sources with their status.
 **Tool**: `mcp__knowledge-base__kb_list`
 
 **Parameters**:
-- `source_type`: Optional filter ("github", "web_page", "web_site")
+- `source_type`: Optional filter ("github_repo", "web_page", "web_site", "local")
 
 **Example invocation**:
 ```
@@ -168,7 +190,7 @@ User: "Show me all GitHub repos in my knowledge base"
 
 **Output includes**: For each source:
 - Source ID
-- Type (github_repo, web_page, web_site)
+- Type (github_repo, web_page, web_site, local)
 - URL
 - Status (ready, indexing, pending, error)
 - Error message (if failed)

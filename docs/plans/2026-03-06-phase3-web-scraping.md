@@ -15,7 +15,7 @@
 ### Task 10: Web Page Fetcher
 
 **Files:**
-- Create: `mcp_server/sources/web.py`
+- Create: `kb/sources/web.py`
 - Test: `tests/unit/sources/test_web.py`
 
 **Step 1: Write web fetcher test**
@@ -25,8 +25,8 @@ Create: `tests/unit/sources/test_web.py`
 ```python
 import pytest
 from unittest.mock import patch, Mock
-from mcp_server.sources.web import WebPageFetcher
-from mcp_server.config import WebConfig
+from kb.sources.web import WebPageFetcher
+from kb.config import WebConfig
 
 @pytest.mark.asyncio
 async def test_fetch_single_page():
@@ -71,14 +71,14 @@ Expected: FAIL
 
 **Step 3: Implement web page fetcher**
 
-Create: `mcp_server/sources/web.py`
+Create: `kb/sources/web.py`
 
 ```python
 import httpx
 from typing import Optional
 from urllib.parse import urlparse
 import trafilatura
-from mcp_server.config import WebConfig
+from kb.config import WebConfig
 
 class WebPageFetcher:
     def __init__(self, url: str, config: WebConfig):
@@ -122,7 +122,7 @@ class WebPageFetcher:
 
     def get_file_info(self):
         """Get FileInfo representation of this page"""
-        from mcp_server.sources.file_info import FileInfo
+        from kb.sources.file_info import FileInfo
 
         return FileInfo(
             path=self.url,
@@ -141,7 +141,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add mcp_server/sources/web.py tests/unit/sources/test_web.py
+git add kb/sources/web.py tests/unit/sources/test_web.py
 git commit -m "feat: add web page fetcher with trafilatura extraction"
 ```
 
@@ -150,7 +150,7 @@ git commit -m "feat: add web page fetcher with trafilatura extraction"
 ### Task 11: Website Sitemap Fetcher
 
 **Files:**
-- Modify: `mcp_server/sources/web.py`
+- Modify: `kb/sources/web.py`
 - Test: `tests/unit/sources/test_web_sitemap.py`
 
 **Step 1: Write sitemap fetcher test**
@@ -160,8 +160,8 @@ Create: `tests/unit/sources/test_web_sitemap.py`
 ```python
 import pytest
 from unittest.mock import patch, Mock
-from mcp_server.sources.web import WebSiteFetcher
-from mcp_server.config import WebConfig
+from kb.sources.web import WebSiteFetcher
+from kb.config import WebConfig
 
 @pytest.mark.asyncio
 async def test_fetch_sitemap():
@@ -219,7 +219,7 @@ Expected: FAIL
 
 **Step 3: Implement sitemap fetcher**
 
-Add to: `mcp_server/sources/web.py`
+Add to: `kb/sources/web.py`
 
 ```python
 from xml.etree import ElementTree as ET
@@ -293,7 +293,7 @@ class WebSiteFetcher:
 
         files = []
         for url in urls:
-            from mcp_server.sources.file_info import FileInfo
+            from kb.sources.file_info import FileInfo
             file_info = FileInfo(
                 path=url,
                 url=url,
@@ -314,7 +314,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add mcp_server/sources/web.py tests/unit/sources/test_web_sitemap.py
+git add kb/sources/web.py tests/unit/sources/test_web_sitemap.py
 git commit -m "feat: add sitemap parsing for website crawling"
 ```
 
@@ -332,8 +332,8 @@ Create: `tests/integration/test_web_integration.py`
 ```python
 import pytest
 from unittest.mock import patch, Mock
-from mcp_server.sources.web import WebPageFetcher, WebSiteFetcher
-from mcp_server.config import WebConfig
+from kb.sources.web import WebPageFetcher, WebSiteFetcher
+from kb.config import WebConfig
 
 @pytest.mark.asyncio
 async def test_web_page_extraction_integration():
