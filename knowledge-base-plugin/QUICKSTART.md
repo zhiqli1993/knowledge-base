@@ -1,156 +1,58 @@
 # Knowledge Base Plugin - Quick Start
 
-Get up and running in 5 minutes!
-
-## Install
+## 1. Install
 
 ```bash
-# Clone the plugin
-git clone https://github.com/zhiqli/knowledge-base.git
-cd knowledge-base/knowledge-base-plugin
-
-# Run installer
-./install.sh
+cd /Users/zhiqli/knowledge-base
+pip install -e .
 ```
 
-The installer will:
-- ✅ Check prerequisites (Python, Ollama, Git)
-- ✅ Install Python dependencies
-- ✅ Pull nomic-embed-text model
-- ✅ Create config files
-- ✅ Install the skill
-
-## Quick Test
-
-### 1. Start Ollama (if not running)
+## 2. Start dependencies
 
 ```bash
 ollama serve
+kb serve
 ```
 
-### 2. Restart Claude Code
+## 3. Configure Claude Code
 
-Quit and reopen Claude Code to load the new skill.
+Ensure `.mcp.json` points to:
 
-### 3. Try it!
-
-In Claude Code, say:
-
-```
-"Add anthropics/anthropic-quickstarts to my knowledge base"
-```
-
-Wait ~30 seconds for indexing, then search:
-
-```
-"Search my docs for customer support examples"
-```
-
-## Common Commands
-
-### Add Content
-
-```
-"Add fastapi/fastapi to my kb"
-"Index https://fastapi.tiangolo.com/"
-"Add the entire Next.js documentation site"
+```json
+{
+  "mcpServers": {
+    "knowledge-base": {
+      "command": "python3",
+      "args": ["-m", "kb.mcp.server"],
+      "env": {
+        "KNOWLEDGE_BASE_CONFIG": "/Users/your-user/.kb/config.json"
+      }
+    }
+  }
+}
 ```
 
-### Search
+## 4. Try it
 
-```
-"Search for async/await Python examples"
-"Find Claude API authentication docs"
-"What do I have about FastAPI?"
-```
+Examples in Claude Code:
 
-### Manage
+- “Add anthropics/anthropic-quickstarts to my knowledge base”
+- “Add ./docs to my kb”
+- “Search my docs for async examples”
+- “Show progress for the last source”
 
-```
-"What's in my knowledge base?"
-"Show all repos I've indexed"
-"List web pages in my kb"
-```
-
-## Manual Testing (without Claude Code)
-
-Use the CLI tool:
+## 5. Manual verification
 
 ```bash
-# Check status
 kb status
-
-# Add a repo
 kb add-repo anthropics/anthropic-quickstarts main
-
-# Search
 kb search "async python"
-
-# List all sources
 kb list
 ```
 
 ## Troubleshooting
 
-### Ollama not running
-
-```bash
-# Check
-curl http://localhost:11434/api/tags
-
-# Start if needed
-ollama serve
-```
-
-### Model not installed
-
-```bash
-ollama pull nomic-embed-text
-```
-
-### Skill not loading in Claude Code
-
-1. Check skill is installed:
-   ```bash
-   ls ~/.claude/skills/knowledge-base/
-   ```
-
-2. Restart Claude Code completely
-
-3. Check Claude Code logs for errors
-
-### MCP Server not responding
-
-1. Check .mcp.json exists:
-   ```bash
-   cat /Users/zhiqli/knowledge-base/.mcp.json
-   ```
-
-2. Verify the package is installed (`pip install -e .`)
-
-3. Restart Claude Code
-
-## What's Next?
-
-- Read [USAGE.md](USAGE.md) for detailed features
-- Check [docs/test-results.md](docs/test-results.md) for examples
-- Run tests: `python3 tests/e2e/test_kb_e2e.py`
-
-## Getting Help
-
-- **Issues**: https://github.com/zhiqli/knowledge-base/issues
-- **Docs**: See README.md and USAGE.md
-- **Examples**: See docs/test-results.md
-
-## Uninstall
-
-```bash
-# Remove skill
-rm -rf ~/.claude/skills/knowledge-base
-
-# Remove data (optional)
-rm -rf ~/.local/share/knowledge-base
-
-# Remove config (optional)
-rm -rf ~/.kb
-```
+- Service not responding → `kb serve`
+- MCP not loading → restart Claude Code
+- Package missing → `pip install -e .`
+- Ollama missing → `ollama pull nomic-embed-text`

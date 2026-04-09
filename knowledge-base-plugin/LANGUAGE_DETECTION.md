@@ -2,152 +2,95 @@
 
 ## Overview
 
-Knowledge Base automatically detects the primary language of a GitHub repository and applies optimized exclude patterns to skip common build artifacts and dependencies.
+When indexing GitHub repositories, Knowledge Base can auto-detect the dominant language and apply optimized exclude patterns to avoid indexing build artifacts and dependency directories.
+
+This behavior happens in the repository indexing pipeline used by the KB web service.
 
 ## Supported Languages
 
 ### Go
-Excludes:
-- `**/vendor/**` - Go dependencies
-- `**/bin/**` - Compiled binaries
-- `**/*.test` - Test binaries
+
+Common excludes:
+
+- `**/vendor/**`
+- `**/bin/**`
+- `**/*.test`
 
 ### Python
-Excludes:
-- `**/__pycache__/**` - Python bytecode
-- `**/venv/**`, `**/env/**`, `**/.venv/**` - Virtual environments
-- `**/site-packages/**` - Installed packages
-- `**/*.pyc`, `**/*.pyo` - Compiled files
-- `**/*.egg-info/**` - Package metadata
-- `**/dist/**`, `**/build/**` - Build artifacts
 
-### JavaScript/TypeScript
-Excludes:
-- `**/node_modules/**` - npm/yarn dependencies
-- `**/dist/**`, `**/build/**` - Build output
-- `**/.next/**` - Next.js build
-- `**/.nuxt/**` - Nuxt.js build
-- `**/coverage/**` - Test coverage
+Common excludes:
+
+- `**/__pycache__/**`
+- `**/venv/**`
+- `**/.venv/**`
+- `**/env/**`
+- `**/site-packages/**`
+- `**/*.pyc`
+- `**/*.pyo`
+- `**/*.egg-info/**`
+- `**/dist/**`
+- `**/build/**`
+
+### JavaScript / TypeScript
+
+Common excludes:
+
+- `**/node_modules/**`
+- `**/dist/**`
+- `**/build/**`
+- `**/.next/**`
+- `**/.nuxt/**`
+- `**/coverage/**`
 
 ### Java
-Excludes:
-- `**/target/**` - Maven build
-- `**/.gradle/**`, `**/build/**` - Gradle
-- `**/*.class`, `**/*.jar`, `**/*.war` - Compiled artifacts
+
+Common excludes:
+
+- `**/target/**`
+- `**/.gradle/**`
+- `**/build/**`
+- `**/*.class`
+- `**/*.jar`
+- `**/*.war`
 
 ### Rust
-Excludes:
-- `**/target/**` - Cargo build
-- `**/*.rlib`, `**/*.so` - Compiled libraries
 
-### C/C++
-Excludes:
-- `**/build/**`, `**/cmake-build-*/**` - Build directories
-- `**/*.o`, `**/*.a`, `**/*.so`, `**/*.dylib` - Compiled objects and libraries
+Common excludes:
 
-## Usage
+- `**/target/**`
+- `**/*.rlib`
+- `**/*.so`
 
-### Automatic Detection (Default)
+### C / C++
 
-```python
-# Add repo without specifying exclude patterns
-await kb_add_repo("fastapi/fastapi")
+Common excludes:
 
-# Language is auto-detected from file extensions
-# Appropriate exclude patterns are applied automatically
-```
+- `**/build/**`
+- `**/cmake-build-*/**`
+- `**/*.o`
+- `**/*.a`
+- `**/*.so`
+- `**/*.dylib`
 
-### Manual Override
+## How It Works
 
-```python
-# Provide custom exclude patterns
-await kb_add_repo(
-    "owner/repo",
-    config={
-        "exclude": [
-            "**/custom_dir/**",
-            "**/*.tmp"
-        ]
-    }
-)
-```
+1. The repo is cloned with shallow history.
+2. File extensions are sampled across the working tree.
+3. A dominant language is inferred.
+4. Language-specific excludes are applied on top of common excludes.
+5. Remaining files are chunked and indexed.
 
-### Disable Auto-Detection
+## Default Usage
 
-In `~/.kb/config.json`:
+You do not need to do anything special.
 
-```json
-{
-  "github": {
-    "auto_detect_language": false
-  }
-}
-```
-
-When disabled, all language-specific excludes are applied (superset approach).
-
-## How Detection Works
-
-1. **Clone repository** with `git clone --depth 1`
-2. **Count file extensions** in the repository
-3. **Map extensions to languages**:
-   - `.go` → Go
-   - `.py` → Python
-   - `.js`, `.jsx` → JavaScript
-   - `.ts`, `.tsx` → TypeScript
-   - `.java` → Java
-   - `.rs` → Rust
-   - `.cpp`, `.cc`, `.c`, `.h` → C++
-4. **Select most common language** by file count
-5. **Apply language-specific excludes** plus common excludes
-
-## Common Excludes (All Projects)
-
-These are always excluded regardless of language:
-
-- `**/.git/**` - Git metadata
-- `**/*.test.*` - Test files
-- `**/*.spec.*` - Spec files
-- `**/.*` - Hidden files (except .md)
-
-## Examples
-
-### Go Project (fastapi/fastapi detected as Python)
 ```bash
 kb add-repo fastapi/fastapi
-
-# Auto-detects Python, excludes:
-# - __pycache__/
-# - venv/
-# - *.pyc
-# + common excludes
 ```
 
-### Mixed Language Project
-```bash
-# Repository with both JS and Python
-# Detected language: JavaScript (more .js files)
-# Excludes node_modules/ but not venv/
+If auto-detection is enabled, the service will infer the language and skip common irrelevant files.
 
-# Solution: Manually specify exclude patterns
-kb add-repo owner/mixed-repo \
-  --exclude "node_modules/**" "venv/**"
-```
-
-## Performance Impact
-
-Auto-detection adds minimal overhead:
-- **Detection time**: ~10-50ms (single pass through file tree)
-- **Clone time**: 1-10 seconds (unchanged)
-- **Indexing time**: Significantly reduced by excluding irrelevant files
-
-Example: Node.js project with 50K files in `node_modules/`
-- Without exclude: 60 seconds, 50K+ files processed
-- With auto-exclude: 5 seconds, ~200 files processed
-
-## Configuration
-
-### Enable/Disable Auto-Detection
+## Global Configuration
 
 Edit `~/.kb/config.json`:
 
@@ -155,85 +98,63 @@ Edit `~/.kb/config.json`:
 {
   "github": {
     "max_file_size_mb": 5,
-    "auto_detect_language": true  // Set to false to disable
+    "auto_detect_language": true
   }
 }
 ```
 
-### Custom Language Patterns
+Set `auto_detect_language` to `false` if you want to disable language inference.
 
-Currently not configurable. File an issue if you need custom language support.
+## Manual Include / Exclude Control
+
+You can still pass explicit patterns when adding a repo.
+
+CLI example:
+
+```bash
+kb add-repo owner/repo main
+```
+
+MCP example:
+
+- `kb_add_repo(repo_url="owner/repo", include=[...], exclude=[...])`
+
+Use explicit include/exclude patterns when:
+
+- the repository is mixed-language
+- dominant-language inference is misleading
+- you want to sharply reduce indexing scope
+
+## Common Excludes Applied Everywhere
+
+Regardless of language, the pipeline also avoids common junk such as:
+
+- `.git`
+- build output
+- dependency directories
+- generated artifacts
 
 ## Troubleshooting
 
-### Wrong Language Detected
+### Wrong language inferred
 
-**Problem**: Repository detected as wrong language
+Pass explicit `exclude` patterns or narrower `include` patterns.
 
-**Solution**: Manually specify exclude patterns:
-```python
-kb_add_repo(
-    "owner/repo",
-    config={
-        "exclude": ["**/vendor/**", "**/node_modules/**"]
-    }
-)
-```
+### Too many files indexed
 
-### Too Many Files Excluded
+Use explicit includes like:
 
-**Problem**: Important files being excluded
+- `docs/**`
+- `src/**`
+- `**/*.md`
+- `**/*.py`
 
-**Solution**: Use explicit include patterns:
-```python
-kb_add_repo(
-    "owner/repo",
-    config={
-        "include": ["**/*.md", "**/*.py", "**/specific_dir/**"],
-        "exclude": []  # Empty exclude = only common excludes
-    }
-)
-```
+### Important files skipped
 
-### New Language Not Supported
+Override with narrower manual includes instead of relying on auto-detection.
 
-**Problem**: Your language (e.g., Scala, Kotlin) not auto-detected
+## Related Docs
 
-**Workaround**: Manually specify patterns or disable auto-detection
-
-**Long-term**: Submit a PR to add language support
-
-## API Reference
-
-### kb_add_repo Parameters
-
-```python
-kb_add_repo(
-    repo_url: str,              # "owner/repo" or full URL
-    branch: str = "main",       # Git branch
-    config: dict = {
-        "include": List[str],   # File patterns to include
-        "exclude": List[str],   # File patterns to exclude
-        "auto_detect_language": bool  # Override global setting
-    }
-)
-```
-
-### GitHubRepoCloner Parameters
-
-```python
-GitHubRepoCloner(
-    repo_url: str,
-    branch: str = "main",
-    include: Optional[List[str]] = None,
-    exclude: Optional[List[str]] = None,
-    max_file_size_mb: int = 5,
-    auto_detect_language: bool = True
-)
-```
-
-## See Also
-
-- [README.md](README.md) - Full documentation
-- [USAGE.md](USAGE.md) - Usage examples
-- [QUICKSTART.md](QUICKSTART.md) - Quick start guide
+- `README.md`
+- `USAGE.md`
+- `knowledge-base-plugin/QUICKSTART.md`

@@ -2,151 +2,109 @@
 
 ## Goal
 
-Turn the existing local MCP knowledge base into a practical local-first system that can be used directly from Claude Code and Cursor without any hosted dependencies beyond the optional local embedding runtime.
+Build a local-first knowledge base that can be used from Claude Code, Cursor, and the `kb` CLI while keeping a single source of truth for indexing and retrieval.
 
-## Scope of this slice
+## Current Architecture
 
-- Add local file and directory ingestion.
-- Expose local ingestion through MCP and CLI entrypoints.
-- Keep storage local with SQLite metadata and Chroma vectors.
-- Document client configuration for Claude Code and Cursor.
-
-## Architecture
+The project has moved from direct CLI/MCP access to a service-oriented model.
 
 ```text
-Claude Code / Cursor / CLI
-            |
-            | MCP stdio / local CLI
-            v
-+---------------------------+
-| FastMCP Knowledge Server  |
-| kb_add_local / kb_search  |
-| kb_list / kb_status       |
-+-------------+-------------+
-              |
-              v
-+---------------------------+
-| Indexer Orchestrator      |
-| source -> chunk -> embed  |
-| -> store                  |
-+------+------+-------------+
-       |      |
-       |      +--------------------+
-       |                           |
-       v                           v
-+-------------------+   +----------------------+
-| Source adapters   |   | Retrieval layer      |
-| local / github /  |   | Chroma similarity    |
-| web               |   | search + formatting  |
-+---------+---------+   +----------------------+
-          |
-          v
-+-------------------+   +----------------------+
-| SQLite metadata   |   | Chroma vector store  |
-| sources/documents |   | chunk embeddings     |
-+-------------------+   +----------------------+
+Clients
+  - kb CLI
+  - Claude Code via MCP
+  - Cursor via MCP
+
+        |
+        v
+Proxy / client layer
+  - kb.cli.main
+  - kb.mcp.server
+  - kb.client.http
+
+        |
+        v
+KB Web Service
+  - kb.http.app
+  - kb.service.core
+
+        |
+        v
+Core pipeline
+  - kb.core.storage
+  - kb.core.indexer
+  - kb.core.retriever
+  - kb.sources.*
+
+        |
+        +--> SQLite metadata
+        +--> Chroma vectors
 ```
 
-## Design decisions
+## Why This Design
 
-### 1. Local source model
+### Single backend authority
 
-Use the existing `SourceType.LOCAL` and treat `Source.url` as the resolved absolute filesystem path.
+Both CLI and MCP now use the same backend, which avoids:
 
-Why:
+- duplicated business logic
+- CLI/MCP behavior drift
+- separate progress implementations
+- conflicting direct writes from multiple entrypoints
 
-- avoids introducing a second path field
-- keeps local sources consistent with other source registrations
-- makes list/status output immediately useful
+### Clean package boundaries
 
-### 2. Local source ingestion
+- `kb/core`: indexing, retrieval, persistence
+- `kb/service`: orchestration
+- `kb/http`: service runtime and local process management
+- `kb/client`: shared HTTP client
+- `kb/cli`: human-facing command interface
+- `kb/mcp`: AI-facing MCP proxy
+- `kb/sources`: GitHub / web / local adapters
 
-Add a local source adapter that:
+## Data Model Notes
 
-- accepts a file or directory path
-- recursively scans directories
-- applies include/exclude glob filters for directories
-- skips oversized or unreadable files
-- returns the existing `FileInfo` shape so the rest of the pipeline stays shared
+`Source` metadata now includes progress-oriented fields used by both CLI and MCP:
 
-### 3. MCP interface
+- `progress_phase`
+- `progress_message`
+- `progress_total`
+- `progress_processed`
+- `progress_updated_at`
 
-Add `kb_add_local(path, include=None, exclude=None)` so AI clients can register local content with one tool call.
+This allows a single `kb progress` / `kb_progress` view without adding a second progress store.
 
-Expected behavior:
+## Local Service Lifecycle
 
-- normalize path to an absolute path
-- reject missing paths early
-- reject paths outside configured local allowlists
-- use a stable `local:<absolute-path>` source id
-- index asynchronously like the existing repo/url/site tools
+The local service is controlled by:
 
-### 4. CLI interface
+- `kb serve`
+- `kb stop`
+- `kb restart`
+- `kb logs`
 
-Add `kb add-local <path>` for local testing and manual operation.
+State is stored under `~/.kb/`.
 
-This keeps non-MCP troubleshooting simple and mirrors the MCP tool.
+## Remote Connection Model
 
-### 5. Metadata and deletion
+CLI can target a remote KB service with:
 
-As part of this slice, make source metadata more trustworthy:
+```bash
+kb connect http://host:port
+```
 
-- persist `last_indexed_at`
-- persist `document_count`
-- persist `chunk_count`
+and return to local mode with:
 
-Deletion should also remove vector chunks for the source, not only SQLite rows.
+```bash
+kb connect local
+```
 
-### 6. Local path safety
+Important: when connected to a remote service, `add-local` refers to a path on the remote host.
 
-Because MCP tools can be called by agents, local indexing must not implicitly grant access to arbitrary host files.
+## Current Non-Goals
 
-Policy in this slice:
+Not implemented yet:
 
-- allow unrestricted local indexing only when `local.allow_unrestricted_paths=true`
-- otherwise require `local.allowed_paths`, or fall back to the server working directory
-- reject paths outside the approved roots before indexing starts
-
-## Data flow
-
-### Add local directory
-
-1. Client calls `kb_add_local("/path/to/project")`
-2. Server creates `Source(id="local:/path/to/project", type=LOCAL, url="/path/to/project")`
-3. Indexer scans files, chunks content, generates embeddings, stores metadata and vectors
-4. Source status moves `pending -> indexing -> ready`
-5. Search can immediately retrieve local chunks
-
-### Delete source
-
-1. Client calls `kb_delete(source_id)`
-2. Server removes Chroma vectors by `source_id`
-3. Server removes SQLite source/documents
-
-## Client integration
-
-### Claude Code
-
-- project config: `.mcp.json`
-- global config: `~/.claude.json`
-
-### Cursor
-
-- project config: `.cursor/mcp.json`
-- global config: `~/.cursor/mcp.json`
-
-Both clients can launch the same local Python stdio server.
-
-## Non-goals for this slice
-
-- file watching / automatic reindex
-- hybrid BM25 + vector retrieval
-- ACL / multi-user permissions
-- binary document parsing beyond the current text-oriented pipeline
-
-## Future extensions
-
-- incremental reindex based on file hashes
-- native local PDF/doc parsing
-- background queue persistence
-- richer fetch tools (`kb_get_document`, `kb_show_source`)
+- authentication / authz
+- persistent distributed job queue
+- file watching
+- binary parsers beyond the current text-first pipeline

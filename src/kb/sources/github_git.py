@@ -115,17 +115,33 @@ class GitHubRepoCloner:
 
     def should_include(self, file_path: Path) -> bool:
         """Check if file should be included based on patterns"""
-        path_str = str(file_path)
+        path_str = file_path.as_posix()
+        exclude_patterns = self.exclude_patterns if self.exclude_patterns is not None else self._get_exclude_patterns()
 
         # Check exclude patterns first
-        for pattern in self.exclude_patterns:
-            if file_path.match(pattern) or fnmatch.fnmatch(path_str, pattern):
+        for pattern in exclude_patterns:
+            if self._matches_pattern(file_path, path_str, pattern):
                 return False
 
         # Check include patterns
         for pattern in self.include_patterns:
-            if file_path.match(pattern) or fnmatch.fnmatch(path_str, pattern):
+            if self._matches_pattern(file_path, path_str, pattern):
                 return True
+
+        return False
+
+    @staticmethod
+    def _matches_pattern(file_path: Path, path_str: str, pattern: str) -> bool:
+        """Match patterns while treating leading '**/' as optional for root files."""
+        if file_path.match(pattern) or fnmatch.fnmatch(path_str, pattern):
+            return True
+
+        if pattern.startswith("**/"):
+            normalized_pattern = pattern[3:]
+            return (
+                file_path.match(normalized_pattern)
+                or fnmatch.fnmatch(path_str, normalized_pattern)
+            )
 
         return False
 

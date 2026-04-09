@@ -1,159 +1,97 @@
 # Knowledge Base Test Results
 
-## ✅ 测试日期: 2026-03-07
+## 最新状态
 
-## 核心功能测试
+当前版本已经完成以下关键重构：
 
-### 1. GitHub 仓库索引（使用 git clone）✅
+- Python 包迁移到 `src/kb`
+- 引入 KB Web Service 作为统一后端
+- CLI 改为 HTTP client
+- MCP 改为 HTTP proxy
+- 默认配置路径改为 `~/.kb/config.json`
+- 支持 `serve/stop/restart/logs/connect/progress/update/reindex`
 
-**测试仓库**: `anthropics/anthropic-quickstarts`
-- ✅ 无需 GitHub token
-- ✅ 成功克隆 90 个文件
-- ✅ 索引完成
-- ✅ 搜索返回相关结果
+## 自动化测试
 
-**示例搜索**:
-```bash
-$ kb search "customer support chatbot"
+最新全量测试结果：
 
-Found 5 results:
-- customer-support-agent/README.md (score: 0.003)
-- customer-support-agent/app/api/chat/route.ts (score: 0.003)
-...
+```text
+77 passed
 ```
 
-### 2. 网页索引 ✅
+## 已验证功能
 
-**已索引页面**:
-- Python asyncio 文档 ✅
-- FastAPI 官方文档 ✅
+### 1. 项目结构
 
-**搜索测试**:
-```bash
-$ kb search "FastAPI web framework"
-Found 3 results with relevant content
+- ✅ `src` layout 生效
+- ✅ `kb` console script 可用
+- ✅ `python -m kb.http` 可启动服务
+- ✅ `python -m kb.mcp.server` 可启动 MCP proxy
+
+### 2. CLI + Web Service
+
+已真实验证：
+
+- ✅ `kb serve`
+- ✅ `kb status`
+- ✅ `kb add-local`
+- ✅ `kb progress`
+- ✅ `kb search`
+- ✅ `kb connect http://host:port`
+- ✅ `kb connect local`
+- ✅ `kb logs`
+- ✅ `kb delete`
+- ✅ `kb stop`
+
+### 3. MCP + Web Service
+
+已真实验证：
+
+- ✅ `kb_add_local`
+- ✅ `kb_progress`
+- ✅ `kb_search`
+- ✅ `kb_status`
+- ✅ `kb_delete`
+
+### 4. 核心能力
+
+- ✅ 本地文件/目录索引
+- ✅ GitHub repo 索引
+- ✅ 单页 URL 索引
+- ✅ Sitemap 站点索引
+- ✅ Chroma 语义搜索
+- ✅ SQLite 元数据存储
+- ✅ 进度元数据持久化
+
+## 端到端验证摘要
+
+### CLI 代理链路
+
+```text
+kb CLI -> HTTP client -> KB Web Service -> core/indexer/storage/retriever
 ```
 
-### 3. 命令行工具 (`kb`) ✅
+验证通过。
 
-所有命令正常工作:
-- ✅ `status` - 显示知识库状态
-- ✅ `list` - 列出所有源
-- ✅ `add-url` - 添加网页
-- ✅ `add-repo` - 添加 GitHub 仓库
-- ✅ `search` - 语义搜索
-- ✅ `delete` - 删除源
+### MCP 代理链路
 
-### 4. MCP Server 集成 ⚠️
-
-**状态**: 部分工作
-
-**工作的功能**:
-- ✅ `kb_add_url` - 添加网页
-- ✅ `kb_add_repo` - 添加仓库（后台索引）
-
-**问题**:
-- ⚠️ `kb_status` / `kb_list` / `kb_search` 卡住
-- **原因**: MCP server 进程可能在运行旧代码，需要重启
-- **解决方案**: 重启 Claude Code 或重新加载 MCP server
-
-## 已修复的问题
-
-### 1. 后台任务管理 ✅
-- **问题**: asyncio.create_task() 创建的任务可能被垃圾回收
-- **修复**: 使用 _background_tasks set 追踪任务
-- **代码**: `start_background_task()` 函数
-
-### 2. GitHub API 依赖 ✅
-- **问题**: 需要 token，有速率限制
-- **修复**: 使用 `git clone --depth 1` 替代 API
-- **优点**: 无需 token，无速率限制，更快更可靠
-
-### 3. Chroma Metadata 类型错误 ✅
-- **问题**: metadata 包含 tuple 列表不被支持
-- **修复**: 将 headers 从 `[(level, text)]` 转换为字符串 `"text1 > text2"`
-
-### 4. 空 Embedding 错误 ✅
-- **问题**: 空文件生成空 embedding
-- **修复**: 过滤掉空 chunks
-
-### 5. Source.config None 错误 ✅
-- **问题**: source.config 可能为 None
-- **修复**: 使用 `config = source.config or {}`
-
-## 当前知识库状态
-
-```
-Sources: 3
-- github:anthropics/anthropic-quickstarts (ready) - 90 files
-- web:fastapi.tiangolo.com/ (ready)
-- web:docs.python.org/3/library/asyncio.html (ready)
-
-Storage: ~/.local/share/knowledge-base/chroma
-Embedding Model: nomic-embed-text (768-dim)
+```text
+Claude Code / Cursor -> kb.mcp.server -> HTTP client -> KB Web Service
 ```
 
-## 性能指标
+验证通过。
 
-- **GitHub 仓库克隆**: ~5-10秒（90文件）
-- **索引时间**: ~30-60秒（包括分块和嵌入生成）
-- **搜索响应**: <1秒
-- **嵌入维度**: 768
-- **分块大小**: 1000 字符（重叠 200）
+## 当前已知限制
 
-## 下一步建议
+- `kb logs` 当前输出可能很少；服务异常时才会明显增长
+- `add-local` 在远程服务场景下使用的是远程主机路径
+- 还没有做认证 / 鉴权层
+- 还没有 file watching / 增量同步
 
-### 短期
-1. ✅ 重启 Claude Code 以加载新的 MCP server 代码
-2. 测试所有 MCP 工具功能
-3. 测试 `kb_add_site`（网站 sitemap 索引）
+## 建议后续方向
 
-### 中期
-4. 优化搜索相关性评分（当前分数较低 0.003-0.014）
-5. 添加进度显示（大仓库索引时）
-6. 支持增量更新（检测文件变更）
-
-### 长期
-7. 添加多模态支持（图片、PDF）
-8. 集成其他 embedding 模型
-9. 添加 Web UI
-
-## 配置文件
-
-当前配置位置: `~/.kb/config.json`
-
-```json
-{
-  "chroma": {
-    "persist_directory": "~/.local/share/knowledge-base/chroma",
-    "collection_name": "knowledge_base"
-  },
-  "ollama": {
-    "host": "localhost",
-    "port": 11434,
-    "model": "nomic-embed-text",
-    "timeout": 60
-  },
-  "indexing": {
-    "chunk_size": 1000,
-    "chunk_overlap": 200
-  },
-  "github": {
-    "token": null,  // 不再需要！
-    "max_file_size_mb": 5
-  },
-  "web": {
-    "timeout": 30,
-    "max_pages_per_site": 100,
-    "user_agent": "KnowledgeBase/1.0"
-  }
-}
-```
-
-## 结论
-
-核心功能完全正常！GitHub 仓库索引现在无需 token 即可工作，这是一个重大改进。
-
-MCP server 集成基本完成，只需要重启进程即可正常使用所有工具。
-
-系统已准备好用于生产环境！🎉
+1. 远程服务认证
+2. 更强的服务日志与观察性
+3. `logs -f` 跟随模式
+4. 增量 update / reindex 优化
+5. 更完善的远程部署说明

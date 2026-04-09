@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kb"
 version = "0.1.0"
-description = "Knowledge base service, CLI, and MCP integration"
+description = "Knowledge Base Service, CLI, and MCP integration"
 requires-python = ">=3.10"
 dependencies = [
     "fastmcp>=0.2.0",

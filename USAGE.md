@@ -1,88 +1,142 @@
 # Knowledge Base 使用指南
 
-## 快速开始
+## 1. 总体说明
 
-### 1. 使用 CLI 工具
+当前系统的工作方式是：
+
+- `kb` CLI 不再直接操作 SQLite / Chroma
+- `kb.mcp.server` 也不再直接操作索引层
+- CLI 和 MCP 都通过 HTTP 访问同一个 KB Web Service
+- 本地服务由 `kb serve/stop/restart` 管理
+
+这让 CLI、MCP、后台索引、状态、进度都共享同一套行为。
+
+## 2. 快速开始
+
+### 安装
 
 ```bash
-# 安装本地命令
 pip install -e .
+```
 
-# 查看状态
+### 准备配置
+
+默认配置文件：
+
+```bash
+~/.kb/config.json
+```
+
+最小可用示例：
+
+```json
+{
+  "ollama": {
+    "host": "localhost",
+    "port": 11434,
+    "model": "nomic-embed-text",
+    "timeout": 60
+  },
+  "service": {
+    "host": "127.0.0.1",
+    "port": 8864,
+    "timeout_seconds": 30
+  },
+  "local": {
+    "allowed_paths": [
+      "/Users/your-user/Documents"
+    ],
+    "allow_unrestricted_paths": false
+  }
+}
+```
+
+### 启动本地服务
+
+```bash
+kb serve
+```
+
+### 查看状态
+
+```bash
 kb status
+```
 
-# 添加本地目录到 knowledge base
-kb add-local "/Users/zhiqli/Documents/project-notes"
+## 3. CLI 命令
 
-# 添加网页到 knowledge base
+### 服务生命周期
+
+```bash
+kb serve
+kb stop
+kb restart
+kb logs
+kb logs 100
+```
+
+### 连接本地或远程服务
+
+```bash
+kb connect http://10.0.0.8:8864
+kb connect local
+```
+
+说明：
+
+- `kb connect <url>` 会把 CLI 指向远程 KB 服务
+- `kb connect local` 会回到本地 `service.host/service.port`
+- 配置会写回 `~/.kb/config.json`
+
+### 添加内容
+
+```bash
+kb add-local "/Users/your-user/Documents/project-notes"
 kb add-url "https://docs.python.org/3/library/asyncio.html"
-
-# 添加整个文档站点
 kb add-site "https://fastapi.tiangolo.com" 50
-
-# 搜索内容
-kb search "asyncio event loop"
-
-# 列出所有来源
-kb list
-
-# 添加 GitHub 仓库
 kb add-repo "anthropics/anthropic-sdk-python"
+```
 
-# 删除来源
+### 查询与管理
+
+```bash
+kb list
+kb list local
+kb progress "local:/absolute/path/to/file.md"
+kb search "asyncio event loop"
 kb delete "web:docs.python.org/3/library/asyncio.html"
+kb update --all
+kb update "github:owner/repo"
+kb reindex --all
+kb reindex "local:/absolute/path/to/notes"
 ```
 
-### 2. 使用 Python API
+## 4. 进度查看
 
-```python
-import asyncio
-from pathlib import Path
-from kb.config import Config
-from kb.core.storage import Storage
-from kb.core.indexer import Indexer
-from kb.core.retriever import Retriever
-from kb.core.models import Source, SourceType, SourceStatus
+索引进度已经持久化到元数据中，CLI 和 MCP 都可以看到同一份进度信息。
 
-async def main():
-    # Load config
-    config = Config.load_default()
-    
-    # Initialize components
-    storage = Storage(config.chroma.persist_directory_expanded / "storage.db")
-    await storage.init()
-    
-    indexer = Indexer(config)
-    await indexer.initialize()
-    
-    retriever = Retriever(config)
-    
-    # Add and index a web page
-    source = Source(
-        id="web:example.com/page",
-        type=SourceType.WEB_PAGE,
-        url="https://example.com/page",
-        status=SourceStatus.PENDING
-    )
-    
-    await storage.add_source(source)
-    await indexer.index_source(source)
-    
-    # Search
-    results = await retriever.search("your query", n_results=5)
-    for result in results:
-        print(f"Score: {result.score:.3f}")
-        print(f"Text: {result.text[:200]}...")
-        print()
+### CLI 查看
 
-asyncio.run(main())
+```bash
+kb progress "local:/absolute/path/to/file.md"
 ```
 
-### 3. MCP Server 集成
+### 返回内容包含
 
-Knowledge Base 现在可以作为本地 MCP server 被 Claude Code 和 Cursor 直接使用。
+- source id
+- status
+- document_count
+- chunk_count
+- progress_total
+- progress_processed
+- progress_phase
+- progress_message
 
-#### Claude Code
+## 5. MCP Server 集成
+
+Knowledge Base 可以作为本地 MCP server 被 Claude Code 和 Cursor 直接使用。
+
+### Claude Code
 
 项目级配置文件：`.mcp.json`
 
@@ -93,14 +147,14 @@ Knowledge Base 现在可以作为本地 MCP server 被 Claude Code 和 Cursor �
       "command": "python3",
       "args": ["-m", "kb.mcp.server"],
       "env": {
-        "KNOWLEDGE_BASE_CONFIG": "~/.kb/config.json"
+        "KNOWLEDGE_BASE_CONFIG": "/Users/your-user/.kb/config.json"
       }
     }
   }
 }
 ```
 
-#### Cursor
+### Cursor
 
 项目级配置文件：`.cursor/mcp.json`
 
@@ -111,14 +165,14 @@ Knowledge Base 现在可以作为本地 MCP server 被 Claude Code 和 Cursor �
       "command": "python3",
       "args": ["-m", "kb.mcp.server"],
       "env": {
-        "KNOWLEDGE_BASE_CONFIG": "~/.kb/config.json"
+        "KNOWLEDGE_BASE_CONFIG": "/Users/your-user/.kb/config.json"
       }
     }
   }
 }
 ```
 
-#### 可用 MCP tools
+### 可用 MCP tools
 
 - `kb_add_local(path, include?, exclude?)`
 - `kb_add_repo(repo_url, branch?, include?, exclude?)`
@@ -127,118 +181,109 @@ Knowledge Base 现在可以作为本地 MCP server 被 Claude Code 和 Cursor �
 - `kb_search(query, n_results?, source_filter?)`
 - `kb_list(source_type?)`
 - `kb_status()`
+- `kb_progress(source_id)`
+- `kb_update(source_id?)`
+- `kb_reindex(source_id?)`
 - `kb_delete(source_id)`
 
-#### 本地路径访问范围
+## 6. 本地路径访问范围
 
-为了避免 MCP 工具读取任意主机文件，`kb_add_local` 默认只允许索引当前工作目录下的内容。
+为了避免 AI 代理读取任意主机文件，`kb_add_local` 仍然受 allowlist 保护。
 
-如果你需要额外目录，请在 `~/.kb/config.json` 中配置：
+配置位置：
+
+```bash
+~/.kb/config.json
+```
+
+示例：
 
 ```json
 {
   "local": {
     "allowed_paths": [
-      "/Users/zhiqli/Documents",
-      "/Users/zhiqli/workspace"
+      "/Users/your-user/Documents",
+      "/Users/your-user/workspace"
     ],
     "allow_unrestricted_paths": false
   }
 }
 ```
 
-只有在明确知道风险时，才把 `allow_unrestricted_paths` 设为 `true`。
+## 7. 远程服务注意事项
 
-## 测试结果
+如果 CLI 或 MCP 指向远程 KB 服务：
 
-### ✅ 已测试功能
+- `add-local` 的路径是**远程服务主机上的路径**，不是当前本机路径
+- `serve/stop/restart/logs` 只管理本地服务
+- `connect` 只影响客户端指向，不会自动启动远程服务
 
-1. **Web 页面索引**
-   - ✅ 内容提取 (trafilatura)
-   - ✅ 智能分块
-   - ✅ 向量嵌入 (Ollama)
-   - ✅ 持久化存储 (ChromaDB)
+## 8. Python API
 
-2. **语义搜索**
-   - ✅ 向量相似度计算
-   - ✅ 结果排序
-   - ✅ 分数归一化
+如果你需要直接在 Python 中嵌入核心组件，可以使用：
 
-3. **元数据管理**
-   - ✅ SQLite 存储
-   - ✅ 状态跟踪
-   - ✅ 来源管理
+```python
+import asyncio
+from kb.config import Config
+from kb.core.storage import Storage
+from kb.core.indexer import Indexer
+from kb.core.retriever import Retriever
 
-### 📊 性能数据
+async def main():
+    config = Config.load_default()
+    storage = Storage(config.chroma.persist_directory_expanded / "storage.db")
+    await storage.init()
 
-- **索引速度**: ~5秒 (小型网页)
-- **嵌入维度**: 768 (nomic-embed-text)
-- **存储大小**: ~274 MB (模型) + ~1 KB/chunk (数据)
+    indexer = Indexer(config)
+    await indexer.initialize()
 
-### 🧪 测试案例
+    retriever = Retriever(config)
+    results = await retriever.search("asyncio", n_results=5)
+    print(results)
 
-```bash
-# 测试 1: 添加并搜索 Python 文档
-kb add-url "https://docs.python.org/3/library/asyncio.html"
-kb search "asyncio library"
-# ✅ 返回 3 个相关结果
-
-# 测试 2: 查看状态
-kb status
-# ✅ 显示 1 个已索引来源
-
-# 测试 3: 列出来源
-kb list
-# ✅ 显示来源详情
+asyncio.run(main())
 ```
 
-## 故障排查
+注意：当前推荐的人机使用路径仍然是 `kb` CLI 或 MCP + Web Service。
+
+## 9. 故障排查
+
+### `kb status` 无法连接
+
+先确认服务是否启动：
+
+```bash
+kb serve
+kb status
+```
+
+### `kb logs` 为空
+
+这是正常的。当前服务默认只有少量启动日志；如果没有异常，日志可能为空。
 
 ### 搜索无结果
 
-1. 确认 Ollama 正在运行:
-   ```bash
-   curl http://localhost:11434/api/tags
-   ```
+1. 检查 Ollama：
 
-2. 检查 ChromaDB 中的数据:
-   ```python
-   from kb.config import Config
-   from kb.core.chroma_client import ChromaClient
-   
-   config = Config.load_default()
-   chroma = ChromaClient(config.chroma)
-   print(f"Chunks: {chroma.count()}")
-   ```
+```bash
+curl http://localhost:11434/api/tags
+```
 
-3. 验证索引状态:
-   ```bash
-   kb status
-   ```
+2. 检查 source 状态和进度：
 
-### 索引失败
+```bash
+kb list
+kb progress <source-id>
+```
 
-1. 检查网络连接
-2. 验证 URL 可访问
-3. 查看错误日志
+3. 尝试更语义化的查询，而不是只搜单个关键词。
 
-### ChromaDB 持久化问题
+## 10. 当前已验证能力
 
-- 确保使用 `PersistentClient` 而非 `Client`
-- 检查存储路径权限
-- 验证磁盘空间
-
-## 限制和已知问题
-
-1. **本地索引**: 当前以文本文件为主，未做 PDF/Office 原生解析
-2. **GitHub 仓库索引**: 已实现，但仍建议继续补更多真实仓库测试
-3. **网站 sitemap 索引**: 已实现，但对异常站点还可继续加强
-4. **搜索分数**: 当前仍是纯向量分数，后续可考虑 hybrid retrieval / rerank
-
-## 下一步
-
-1. 增加本地目录增量重建 / file watching
-2. 为 Cursor 和 Claude Code 增加更细的示例工作流
-3. 测试 GitHub 仓库索引
-4. 测试网站 sitemap 索引
-5. 优化搜索相关性评分
+- 本地服务生命周期命令
+- 远程连接切换
+- 进度显示
+- 本地文件索引
+- MCP 代理到 Web Service
+- CLI 代理到 Web Service
+- 全量测试通过
