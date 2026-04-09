@@ -75,6 +75,42 @@ async def test_index_github_repo(indexer):
 
 
 @pytest.mark.asyncio
+async def test_index_github_repo_detects_default_branch_when_missing(indexer):
+    with patch('kb.core.indexer.GitHubRepoFetcher') as mock_fetcher_class, \
+         patch('kb.core.indexer.asyncio.to_thread', new_callable=AsyncMock) as mock_to_thread, \
+         patch.object(indexer.chroma, 'add_documents') as mock_add_chroma, \
+         patch.object(indexer.embeddings, 'embed_batch', new_callable=AsyncMock) as mock_embed:
+
+        mock_file_info = Mock()
+        mock_file_info.path = "README.md"
+        mock_file_info.url = "https://example.com/repo/README.md"
+        mock_file_info.size = 100
+        mock_file_info.content = "# Test\n\nContent"
+
+        mock_fetcher = Mock()
+        mock_fetcher.list_files = AsyncMock(return_value=[mock_file_info])
+        mock_fetcher.cleanup = Mock()
+        mock_fetcher_class.return_value = mock_fetcher
+
+        mock_to_thread.return_value = "tekton"
+        mock_embed.return_value = [[0.1, 0.2, 0.3]]
+
+        source = Source(
+            id="github:owner/repo",
+            type=SourceType.GITHUB_REPO,
+            url="https://github-cli.corp.ebay.com/owner/repo",
+            status=SourceStatus.PENDING,
+            config={"branch": None, "include": [], "exclude": []},
+        )
+
+        await indexer.index_source(source)
+
+        mock_to_thread.assert_awaited()
+        assert mock_fetcher_class.call_args.kwargs["branch"] == "tekton"
+        assert mock_add_chroma.called
+
+
+@pytest.mark.asyncio
 async def test_index_local_source(indexer, tmp_path):
     """Test local file indexing."""
     local_file = tmp_path / "notes.md"

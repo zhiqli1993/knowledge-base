@@ -1,3 +1,5 @@
+from unittest.mock import Mock, patch
+
 import pytest
 
 from kb.sources.github_git import GitHubRepoCloner
@@ -39,3 +41,25 @@ async def test_list_files_excludes_hidden_and_ignored_paths(tmp_path):
     assert ".env" not in indexed_paths
     assert "node_modules/index.js" not in indexed_paths
     assert "visible.md" in indexed_paths
+
+
+def test_detect_default_branch_parses_head_ref():
+    completed = Mock(returncode=0, stdout="ref: refs/heads/tekton\tHEAD\nabc\tHEAD\n", stderr="")
+
+    with patch("kb.sources.github_git.subprocess.run", return_value=completed) as mock_run:
+        branch = GitHubRepoCloner.detect_default_branch("https://github-cli.corp.ebay.com/org/repo")
+
+    assert branch == "tekton"
+    mock_run.assert_called_once()
+
+
+def test_detect_default_branch_normalizes_short_repo():
+    completed = Mock(returncode=0, stdout="ref: refs/heads/main\tHEAD\nabc\tHEAD\n", stderr="")
+
+    with patch("kb.sources.github_git.subprocess.run", return_value=completed) as mock_run:
+        branch = GitHubRepoCloner.detect_default_branch("owner/repo")
+
+    assert branch == "main"
+    cmd = mock_run.call_args.args[0]
+    assert cmd[:3] == ["git", "ls-remote", "--symref"]
+    assert cmd[3] == "https://github.com/owner/repo.git"

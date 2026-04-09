@@ -16,7 +16,7 @@ def create_server() -> FastMCP:
     mcp = FastMCP("knowledge-base")
 
     @mcp.tool()
-    async def kb_add_repo(repo_url: str, branch: str = "main", include: Optional[List[str]] = None, exclude: Optional[List[str]] = None) -> str:
+    async def kb_add_repo(repo_url: str, branch: Optional[str] = None, include: Optional[List[str]] = None, exclude: Optional[List[str]] = None) -> str:
         data = await client.add_repo(repo_url, branch, include, exclude)
         return format_message(data["message"]) + "\n\n" + format_source(data["source"])
 

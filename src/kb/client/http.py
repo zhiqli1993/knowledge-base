@@ -47,7 +47,7 @@ class KBHttpClient:
             payload['max_pages'] = max_pages
         return await self._request('POST', '/v1/sources/site', json=payload)
 
-    async def add_repo(self, repo_url: str, branch: str = 'main', include=None, exclude=None) -> Dict[str, Any]:
+    async def add_repo(self, repo_url: str, branch: Optional[str] = None, include=None, exclude=None) -> Dict[str, Any]:
         return await self._request('POST', '/v1/sources/repo', json={
             'repo_url': repo_url,
             'branch': branch,

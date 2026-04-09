@@ -85,7 +85,7 @@ class GitHubRepoCloner:
         max_file_size_mb: int = 5,
         auto_detect_language: bool = True
     ):
-        self.repo_url = self._normalize_url(repo_url)
+        self.repo_url = self.normalize_url(repo_url)
         self.branch = branch
         self.max_file_size_mb = max_file_size_mb
         self.auto_detect = auto_detect_language
@@ -101,7 +101,8 @@ class GitHubRepoCloner:
         self.temp_dir = None
         self.repo_path = None
 
-    def _normalize_url(self, repo_url: str) -> str:
+    @staticmethod
+    def normalize_url(repo_url: str) -> str:
         """Normalize repo URL to https format"""
         # If already full URL, return as is
         if repo_url.startswith("http"):
@@ -112,6 +113,34 @@ class GitHubRepoCloner:
             return f"https://github.com/{repo_url}.git"
 
         raise ValueError(f"Invalid repo URL format: {repo_url}")
+
+    @classmethod
+    def detect_default_branch(cls, repo_url: str) -> str:
+        """Detect the remote default branch using git ls-remote."""
+        normalized_url = cls.normalize_url(repo_url)
+        cmd = ["git", "ls-remote", "--symref", normalized_url, "HEAD"]
+
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError(f"Timed out detecting default branch for {repo_url}") from exc
+
+        if result.returncode != 0:
+            stderr = result.stderr.strip() or "unknown git error"
+            raise RuntimeError(f"Failed to detect default branch for {repo_url}: {stderr}")
+
+        for line in result.stdout.splitlines():
+            if line.startswith("ref: ") and line.endswith("\tHEAD"):
+                ref = line.split("\t", 1)[0].removeprefix("ref: ").strip()
+                if ref.startswith("refs/heads/"):
+                    return ref.removeprefix("refs/heads/")
+
+        raise RuntimeError(f"Failed to detect default branch for {repo_url}: missing HEAD ref")
 
     def should_include(self, file_path: Path) -> bool:
         """Check if file should be included based on patterns"""

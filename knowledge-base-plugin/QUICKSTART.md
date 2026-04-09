@@ -45,7 +45,7 @@ Examples in Claude Code:
 
 ```bash
 kb status
-kb add-repo anthropics/anthropic-quickstarts main
+kb add-repo anthropics/anthropic-quickstarts
 kb search "async python"
 kb list
 ```

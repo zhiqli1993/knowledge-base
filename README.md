@@ -161,6 +161,8 @@ kb update <source-id|--all>
 kb reindex <source-id|--all>
 ```
 
+If `branch` is omitted for `kb add-repo`, the service detects the remote default branch automatically.
+
 ## MCP Setup
 
 ### Claude Code

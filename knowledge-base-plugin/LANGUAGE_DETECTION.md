@@ -112,7 +112,7 @@ You can still pass explicit patterns when adding a repo.
 CLI example:
 
 ```bash
-kb add-repo owner/repo main
+kb add-repo owner/repo
 ```
 
 MCP example:

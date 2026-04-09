@@ -74,7 +74,7 @@ class KBService:
     async def add_repo(
         self,
         repo_url: str,
-        branch: str = "main",
+        branch: Optional[str] = None,
         include: Optional[List[str]] = None,
         exclude: Optional[List[str]] = None,
     ) -> Dict[str, Any]:

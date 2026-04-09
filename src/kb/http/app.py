@@ -56,13 +56,13 @@ async def create_app(config: Config) -> web.Application:
             return web.json_response(
                 await service.add_repo(
                     payload["repo_url"],
-                    payload.get("branch", "main"),
+                    payload.get("branch"),
                     payload.get("include"),
                     payload.get("exclude"),
                 ),
                 status=202,
             )
-        except (KeyError, ValueError) as exc:
+        except (KeyError, ValueError, RuntimeError) as exc:
             return await _json_error(str(exc), 400)
 
     async def add_local(request: web.Request) -> web.Response:

@@ -97,6 +97,11 @@ kb add-site "https://fastapi.tiangolo.com" 50
 kb add-repo "anthropics/anthropic-sdk-python"
 ```
 
+说明：
+
+- 如果不传 `branch`，系统会自动探测远端仓库默认分支
+- 这同样适用于企业 GitHub / GitHub Enterprise 风格的 HTTPS 仓库 URL
+
 ### 查询与管理
 
 ```bash

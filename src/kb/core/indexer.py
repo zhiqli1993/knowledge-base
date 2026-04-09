@@ -1,4 +1,5 @@
 """Indexer orchestrates the complete indexing pipeline."""
+import asyncio
 import hashlib
 from pathlib import Path
 from typing import List, Tuple
@@ -101,10 +102,22 @@ class Indexer:
         """Index GitHub repository using git clone"""
         # Get config or use defaults
         config = source.config or {}
+        branch = config.get('branch')
+        if not branch:
+            branch = await asyncio.to_thread(GitHubRepoFetcher.detect_default_branch, source.url)
+            await self.storage.update_source_progress(
+                source.id,
+                phase="starting",
+                message=f"Detected default branch {branch}",
+                total=0,
+                processed=0,
+                document_count=0,
+                chunk_count=0,
+            )
 
         cloner = GitHubRepoFetcher(
             repo_url=source.url,
-            branch=config.get('branch', 'main'),
+            branch=branch,
             include=config.get('include'),
             exclude=config.get('exclude'),
             max_file_size_mb=self.config.github.max_file_size_mb

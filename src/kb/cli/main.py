@@ -40,7 +40,7 @@ class KnowledgeBaseCLI:
         print()
         print(format_source(data["source"]))
 
-    async def add_repo(self, repo_url, branch="main"):
+    async def add_repo(self, repo_url, branch=None):
         data = await self.client.add_repo(repo_url, branch)
         print(format_message(data["message"]))
         print()
@@ -152,7 +152,7 @@ async def async_main():
             max_pages = int(sys.argv[3]) if len(sys.argv) > 3 else None
             await cli.add_site(sys.argv[2], max_pages)
         elif command == "add-repo":
-            branch = sys.argv[3] if len(sys.argv) > 3 else "main"
+            branch = sys.argv[3] if len(sys.argv) > 3 else None
             await cli.add_repo(sys.argv[2], branch)
         elif command == "add-local":
             await cli.add_local(sys.argv[2])
