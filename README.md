@@ -227,10 +227,11 @@ Current MCP tools:
 
 Latest verified state:
 
-- `pytest` → `77 passed`
+- `pytest` → `93 passed`
 - CLI web-service E2E validated locally
 - MCP proxy E2E validated locally
 - `kb serve/status/add-local/progress/search/connect/logs/delete/stop` verified
+- GitHub Actions workflow: `.github/workflows/build.yml`
 
 ## Development
 
