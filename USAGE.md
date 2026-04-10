@@ -13,11 +13,46 @@
 
 ## 2. 快速开始
 
-### 安装
+### Python 包安装
+
+此方式需要 Python 3.10+。
 
 ```bash
 pip install -e .
 ```
+
+### 预编译二进制安装
+
+此方式不需要额外安装 Python。
+
+当前发布的二进制平台：
+
+- macOS x64
+- macOS arm64
+- Linux x64
+- Windows x64
+
+macOS / Linux：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zhiqli1993/knowledge-base/main/install.sh | sh
+```
+
+Windows PowerShell：
+
+```powershell
+irm https://raw.githubusercontent.com/zhiqli1993/knowledge-base/main/install.ps1 | iex
+```
+
+二进制安装会直接提供：
+
+```bash
+kb
+kb-http
+kb-mcp
+```
+
+Linux arm64 暂时没有预编译产物，请先使用 Python 包安装。
 
 ### 准备配置
 
@@ -149,8 +184,7 @@ Knowledge Base 可以作为本地 MCP server 被 Claude Code 和 Cursor 直接�
 {
   "mcpServers": {
     "knowledge-base": {
-      "command": "python3",
-      "args": ["-m", "kb.mcp.server"],
+      "command": "kb-mcp",
       "env": {
         "KNOWLEDGE_BASE_CONFIG": "/Users/your-user/.kb/config.json"
       }
@@ -167,8 +201,7 @@ Knowledge Base 可以作为本地 MCP server 被 Claude Code 和 Cursor 直接�
 {
   "mcpServers": {
     "knowledge-base": {
-      "command": "python3",
-      "args": ["-m", "kb.mcp.server"],
+      "command": "kb-mcp",
       "env": {
         "KNOWLEDGE_BASE_CONFIG": "/Users/your-user/.kb/config.json"
       }
@@ -190,6 +223,11 @@ Knowledge Base 可以作为本地 MCP server 被 Claude Code 和 Cursor 直接�
 - `kb_update(source_id?)`
 - `kb_reindex(source_id?)`
 - `kb_delete(source_id)`
+
+说明：
+
+- 无论是 Python 安装还是二进制安装，都推荐直接使用 `kb-mcp`
+- 本地 CLI 里的 `kb serve` 会在二进制安装场景下自动拉起同目录的 `kb-http`
 
 ## 6. 本地路径访问范围
 

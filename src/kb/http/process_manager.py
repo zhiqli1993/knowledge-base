@@ -4,7 +4,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Tuple
+from typing import List, Tuple
 from urllib.request import urlopen
 
 from kb.config import Config, resolve_config_path
@@ -44,6 +44,38 @@ def _healthcheck(url: str, timeout: float = 1.0) -> bool:
         return False
 
 
+def _binary_name(base_name: str) -> str:
+    return f"{base_name}.exe" if os.name == "nt" else base_name
+
+
+def _is_executable_file(path: Path) -> bool:
+    if not path.is_file():
+        return False
+    if os.name == "nt":
+        return True
+    return os.access(path, os.X_OK)
+
+
+def _service_command() -> List[str]:
+    override = os.getenv("KB_HTTP_EXECUTABLE")
+    if override:
+        executable = Path(override).expanduser()
+        if not _is_executable_file(executable):
+            raise RuntimeError(f"KB_HTTP_EXECUTABLE does not point to a runnable file: {executable}")
+        return [str(executable)]
+
+    if getattr(sys, "frozen", False):
+        executable = Path(sys.executable).resolve().with_name(_binary_name("kb-http"))
+        if not _is_executable_file(executable):
+            raise RuntimeError(
+                f"Could not find companion service binary at {executable}. "
+                "Reinstall the kb binary bundle or set KB_HTTP_EXECUTABLE."
+            )
+        return [str(executable)]
+
+    return [sys.executable, "-m", "kb.http"]
+
+
 def serve() -> str:
     config = load_config()
     pid_path, state_path, log_path = state_paths(config)
@@ -59,7 +91,7 @@ def serve() -> str:
 
     with open(log_path, 'a', encoding='utf-8') as log_file:
         process = subprocess.Popen(
-            [sys.executable, '-m', 'kb.http'],
+            _service_command(),
             stdout=log_file,
             stderr=log_file,
             start_new_session=True,

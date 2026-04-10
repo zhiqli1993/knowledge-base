@@ -93,18 +93,66 @@ jobs:
         run: python -m pip show kb
 
       - name: Smoke test installed wheel
-        run: |
-          kb --help
-          python -c "import kb; print(kb.__file__)"
+        run: python scripts/smoke_test_installed_commands.py
 
       - name: Run tests against installed wheel
         env:
           KB_TEST_INSTALLED_PACKAGE: "1"
         run: pytest -q
 
+  build-binaries:
+    needs: validate-wheel
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            platform: linux
+            arch: x64
+          - runner: windows-latest
+            platform: windows
+            arch: x64
+          - runner: macos-13
+            platform: darwin
+            arch: x64
+          - runner: macos-14
+            platform: darwin
+            arch: arm64
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install binary build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pyinstaller .
+
+      - name: Build binary archive
+        run: python scripts/build_binary_release.py --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
+
+      - name: Smoke test binary bundle
+        run: python scripts/smoke_test_binary_bundle.py build/binary-release/bundles/kb-${{ matrix.platform }}-${{ matrix.arch }}
+
+      - name: Upload binary archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.platform }}-${{ matrix.arch }}
+          path: release-assets/kb-${{ matrix.platform }}-${{ matrix.arch }}*
+
   publish-release:
     if: startsWith(github.ref, 'refs/tags/')
-    needs: validate-wheel
+    needs:
+      - validate-wheel
+      - build-binaries
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -115,8 +163,17 @@ jobs:
           name: release-dist
           path: dist
 
+      - name: Download binary artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: binary-*
+          merge-multiple: true
+          path: release-assets
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: |
+            dist/*
+            release-assets/*
           generate_release_notes: true

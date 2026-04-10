@@ -70,16 +70,17 @@ src/kb/
 
 ### Prerequisites
 
-1. Python 3.10+
-2. Ollama with `nomic-embed-text`
-3. Git
+1. Ollama with `nomic-embed-text`
+2. Git
 
 ```bash
 ollama pull nomic-embed-text
 ollama serve
 ```
 
-### Install
+### Install from Python package
+
+Python 3.10+ is required for this option.
 
 ```bash
 pip install -e .
@@ -89,9 +90,36 @@ This installs:
 
 ```bash
 kb
+kb-http
+kb-mcp
 python -m kb.http
-python -m kb.mcp.server
+python -m kb.mcp
 ```
+
+### Install prebuilt binaries
+
+Python is not required for this option.
+
+Published binary archives currently cover:
+
+- macOS x64
+- macOS arm64
+- Linux x64
+- Windows x64
+
+macOS / Linux:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zhiqli1993/knowledge-base/main/install.sh | sh
+```
+
+Windows PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/zhiqli1993/knowledge-base/main/install.ps1 | iex
+```
+
+Linux arm64 is not published yet; use the Python package install on that platform for now.
 
 ## Default Config Path
 
@@ -173,8 +201,7 @@ Create `.mcp.json`:
 {
   "mcpServers": {
     "knowledge-base": {
-      "command": "python3",
-      "args": ["-m", "kb.mcp.server"],
+      "command": "kb-mcp",
       "env": {
         "KNOWLEDGE_BASE_CONFIG": "/Users/your-user/.kb/config.json"
       }
@@ -191,8 +218,7 @@ Create `.cursor/mcp.json`:
 {
   "mcpServers": {
     "knowledge-base": {
-      "command": "python3",
-      "args": ["-m", "kb.mcp.server"],
+      "command": "kb-mcp",
       "env": {
         "KNOWLEDGE_BASE_CONFIG": "/Users/your-user/.kb/config.json"
       }
@@ -203,9 +229,10 @@ Create `.cursor/mcp.json`:
 
 Important:
 
-- Install the package first with `pip install -e .`
+- Install either the Python package or the prebuilt binary bundle first
 - The MCP server now proxies the KB web service instead of accessing storage directly
 - Start the local service with `kb serve` before using MCP tools locally
+- `kb-mcp` is available from both the Python package install and the binary release install
 
 ## MCP Tools
 
@@ -227,9 +254,10 @@ Current MCP tools:
 
 Latest verified state:
 
-- `pytest` → `93 passed`
+- `pytest` → `98 passed`
 - CLI web-service E2E validated locally
 - MCP proxy E2E validated locally
+- Local binary bundle smoke test validated on the current platform
 - `kb serve/status/add-local/progress/search/connect/logs/delete/stop` verified
 - GitHub Actions workflow: `.github/workflows/build.yml`
 - GitHub release workflow: `.github/workflows/release.yml`
@@ -238,7 +266,7 @@ Latest verified state:
 
 - Push to `main` or open a pull request to run `.github/workflows/build.yml`
 - Push a version tag such as `v0.1.0` to run `.github/workflows/release.yml`
-- The release workflow rebuilds the package, validates the installed wheel in a clean environment, and attaches `dist/*` artifacts to the GitHub Release
+- The release workflow rebuilds the package, validates the installed wheel in a clean environment, builds cross-platform `kb` / `kb-http` / `kb-mcp` binaries, and attaches all artifacts to the GitHub Release
 - Release tags must match `pyproject.toml` exactly, for example package version `0.1.0` must be tagged as `v0.1.0`
 
 ## Development

@@ -74,8 +74,14 @@ try:
 except Exception:
     server = None
 
-if __name__ == "__main__":
+
+def main() -> int:
     if server:
         server.run()
-    else:
-        print('Failed to create server. Please check configuration.')
+        return 0
+    print('Failed to create server. Please check configuration.')
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

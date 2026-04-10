@@ -29,6 +29,8 @@ test = [
 
 [project.scripts]
 kb = "kb.cli.main:cli_entry"
+kb-http = "kb.http.__main__:main"
+kb-mcp = "kb.mcp.server:main"
 
 
 [tool.setuptools.packages.find]
