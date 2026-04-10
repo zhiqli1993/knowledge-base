@@ -232,6 +232,14 @@ Latest verified state:
 - MCP proxy E2E validated locally
 - `kb serve/status/add-local/progress/search/connect/logs/delete/stop` verified
 - GitHub Actions workflow: `.github/workflows/build.yml`
+- GitHub release workflow: `.github/workflows/release.yml`
+
+## Automation
+
+- Push to `main` or open a pull request to run `.github/workflows/build.yml`
+- Push a version tag such as `v0.1.0` to run `.github/workflows/release.yml`
+- The release workflow rebuilds the package, validates the installed wheel in a clean environment, and attaches `dist/*` artifacts to the GitHub Release
+- Release tags must match `pyproject.toml` exactly, for example package version `0.1.0` must be tagged as `v0.1.0`
 
 ## Development
 
